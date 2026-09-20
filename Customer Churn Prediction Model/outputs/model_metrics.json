@@ -1,0 +1,112 @@
+{
+  "author": "OGHENEOCHUKO EMMANUEL OGIDIAGBA",
+  "project": "Customer Churn Prediction Model",
+  "generated_at": "2026-09-20T21:38:20.751279",
+  "model_performance": {
+    "accuracy": 0.715,
+    "precision": 0.6176836861768369,
+    "recall": 0.7211922937113777,
+    "f1_score": 0.6654368606406171,
+    "roc_auc": 0.7821908873462988,
+    "confusion_matrix": {
+      "true_negatives": 3021,
+      "false_positives": 1228,
+      "false_negatives": 767,
+      "true_positives": 1984
+    }
+  },
+  "hyperparameters": {
+    "learning_rate": 0.1,
+    "max_depth": 5,
+    "min_samples_split": 2,
+    "n_estimators": 100
+  },
+  "feature_importance_ranking": [
+    {
+      "feature": "Contract",
+      "importance": 0.6278532842319061
+    },
+    {
+      "feature": "MonthlyCharges",
+      "importance": 0.08067335941488284
+    },
+    {
+      "feature": "PaymentMethod",
+      "importance": 0.054223126319469475
+    },
+    {
+      "feature": "Partner",
+      "importance": 0.05001558983819234
+    },
+    {
+      "feature": "TotalCharges",
+      "importance": 0.03913309602069916
+    },
+    {
+      "feature": "TechSupport",
+      "importance": 0.032107756851389224
+    },
+    {
+      "feature": "Tenure_Months",
+      "importance": 0.021400637716120982
+    },
+    {
+      "feature": "DeviceProtection",
+      "importance": 0.019844447867331506
+    },
+    {
+      "feature": "InternetService",
+      "importance": 0.018084242087051637
+    },
+    {
+      "feature": "Gender",
+      "importance": 0.011923427822158042
+    },
+    {
+      "feature": "StreamingTV",
+      "importance": 0.01176001325740619
+    },
+    {
+      "feature": "MultipleLines",
+      "importance": 0.008414921294497555
+    },
+    {
+      "feature": "StreamingMovies",
+      "importance": 0.005519300710910218
+    },
+    {
+      "feature": "PaperlessBilling",
+      "importance": 0.005512616037184303
+    },
+    {
+      "feature": "Dependents",
+      "importance": 0.0036140620741587524
+    },
+    {
+      "feature": "SeniorCitizen",
+      "importance": 0.0029379765145859673
+    },
+    {
+      "feature": "OnlineBackup",
+      "importance": 0.002862948466924137
+    },
+    {
+      "feature": "OnlineSecurity",
+      "importance": 0.002617445237928602
+    },
+    {
+      "feature": "TenureQ",
+      "importance": 0.0010423105235710874
+    },
+    {
+      "feature": "PhoneService",
+      "importance": 0.0004594377136318397
+    }
+  ],
+  "performance_thresholds": {
+    "accuracy_target": 0.8,
+    "roc_auc_target": 0.75,
+    "accuracy_met": false,
+    "roc_auc_met": true
+  }
+}
