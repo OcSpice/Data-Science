@@ -1,6 +1,6 @@
-# Synthetic M5-Like Retail Forecasting Dataset — V2
+# M5 Retail Forecasting Dataset
 
-A synthetic retail dataset designed for a complete **Forecasting + Machine Learning**
+A retail dataset designed for a complete **Forecasting + Machine Learning**
 portfolio project. The structure is inspired by the M5 Walmart forecasting format,
 but the data is synthetic and is NOT Walmart's real data.
 
