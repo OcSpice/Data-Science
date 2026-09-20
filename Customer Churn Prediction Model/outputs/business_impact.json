@@ -1,0 +1,47 @@
+{
+  "author": "OGHENEOCHUKO EMMANUEL OGIDIAGBA",
+  "project": "Customer Churn Prediction Model",
+  "generated_at": "2026-09-20T21:38:20.751653",
+  "revenue_impact": {
+    "at_risk_monthly": 605109.96,
+    "at_risk_formatted": "$605,109.96",
+    "projected_annual_loss": 7261319.52,
+    "high_risk_customers": 7863,
+    "key_finding": "$605,110 in at-risk revenue identified"
+  },
+  "churn_drivers": [
+    {
+      "Feature": "Contract",
+      "MeanAbsoluteSHAP": 0.3523916666666667
+    },
+    {
+      "Feature": "MonthlyCharges",
+      "MeanAbsoluteSHAP": 0.10900833333333333
+    },
+    {
+      "Feature": "Partner",
+      "MeanAbsoluteSHAP": 0.08199166666666667
+    },
+    {
+      "Feature": "PaymentMethod",
+      "MeanAbsoluteSHAP": 0.07260833333333333
+    },
+    {
+      "Feature": "TechSupport",
+      "MeanAbsoluteSHAP": 0.059399999999999994
+    }
+  ],
+  "business_insights": [
+    "Month-to-month contracts are primary drivers of churn",
+    "Fiber optic internet service correlates with higher churn",
+    "Lack of TechSupport increases churn probability",
+    "Shorter tenure customers show higher churn risk",
+    "Paperless billing associated with increased churn"
+  ],
+  "recommendations": [
+    "Implement targeted retention campaigns for high-risk customers",
+    "Offer contract incentives to month-to-month customers",
+    "Proactive outreach for customers with fiber optic service",
+    "Enhance tech support offerings to reduce churn drivers"
+  ]
+}

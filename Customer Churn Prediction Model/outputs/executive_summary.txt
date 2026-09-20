@@ -1,0 +1,35 @@
+
+================================================================================
+                    AT-RISK REVENUE ANALYSIS - EXECUTIVE SUMMARY
+================================================================================
+                    Author: OGHENEOCHUKO EMMANUEL OGIDIAGBA
+                    Project: Customer Churn Prediction Model
+================================================================================
+
+KEY METRICS:
+------------
+* Total Customers Analyzed: 35,000
+* High-Risk Customers Identified: 7,863 
+  (22.47% of base)
+* Risk Threshold Applied: 70.0% churn probability
+
+FINANCIAL IMPACT:
+-----------------
+* Monthly At-Risk Revenue: $605,109.96
+* Projected Annual Loss: $7,261,319.52
+* Avg. Monthly Charge (At-Risk): $76.96
+
+PRIMARY FINDING:
+----------------
+$605,110 in at-risk revenue identified in monthly revenue is at risk from customer churn.
+
+RECOMMENDED ACTIONS:
+--------------------
+1. Implement targeted retention campaigns for high-risk customers
+2. Offer contract incentives to month-to-month customers
+3. Proactive outreach for customers with fiber optic service
+4. Enhance tech support offerings to reduce churn drivers
+
+================================================================================
+                         END OF EXECUTIVE SUMMARY
+================================================================================
