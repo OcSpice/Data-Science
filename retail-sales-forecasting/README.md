@@ -2,6 +2,30 @@
 
 End-to-end time-series forecasting and machine-learning portfolio project using a synthetic M5-style retail dataset.
 
+## Application-ready project snapshot
+
+**Role:** Data Analyst / Data Science portfolio project  
+**Domain:** Retail analytics, demand forecasting, inventory planning  
+**Scale:** 224 item-store series across 3 years of daily data  
+**Tools:** Python, Pandas, Scikit-learn, XGBoost, LightGBM, SHAP, Plotly, Streamlit, GitHub Actions
+
+### Resume-ready achievements
+
+- Built an end-to-end forecasting workflow across **224 item-store series** using EDA, feature engineering, statistical baselines and machine-learning models.
+- Evaluated **4 forecasting approaches** with MAE, RMSE and WMAPE on the primary chronological holdout, then compared all four across **3 additional 28-day walk-forward windows**.
+- Achieved **21.94% WMAPE** with a Moving Average baseline on the primary 28-day validation window, demonstrating that model complexity did not automatically improve performance.
+- Reduced held-out test WMAPE from **49.04% to 40.65%** with a volume-aware hybrid forecasting policy combining ML forecasts and demand-specific fallbacks.
+- Reduced low-volume WMAPE from **91.63% to 33.11%** in the same controlled experiment through demand segmentation and fallback forecasting.
+
+### What this project demonstrates
+
+**Data Analytics:** EDA, segmentation, KPI design, error analysis, business interpretation  
+**Data Science:** time-series forecasting, feature engineering, model comparison, recursive walk-forward evaluation, SHAP explainability  
+**Business Analytics:** demand planning, safety stock, reorder points, scenario analysis  
+**Engineering:** modular Python, automated tests, reproducible reporting, Streamlit dashboard, GitHub Actions
+
+> **Data note:** This is a synthetic dataset structurally inspired by M5/Walmart-style retail forecasting. Forecasting and inventory results are portfolio experiments, not claims about a real retailer's historical performance.
+
 ## Business problem
 
 Retailers need reliable short-term demand forecasts for inventory planning, replenishment, staffing and promotion decisions.
@@ -35,13 +59,25 @@ This is an important analytical finding: model complexity is not automatically a
 
 ## Walk-forward validation
 
-`src/walk_forward.py` provides:
+`src/walk_forward.py` now evaluates the four main approaches across **three chronological 28-day windows**:
 
-- Multiple chronological forecast windows
-- 28-day horizons by default
-- Seasonal-naive evaluation without future-data leakage
-- Window-level MAE, RMSE and WMAPE
-- Mean and standard deviation across windows
+- Seasonal Naive
+- Moving Average
+- XGBoost
+- LightGBM
+
+The baseline forecasts use only the training window. XGBoost and LightGBM are fit separately for each window and forecast the 28-day horizon recursively, adding each prediction to the history used for later lag/rolling features. This prevents future actual sales from entering the ML lag features.
+
+### Multi-window results
+
+| Model | Mean MAE | Mean RMSE | Mean WMAPE |
+|---|---:|---:|---:|
+| Seasonal Naive | 1.717 | 2.652 | 27.07% |
+| Moving Average | **1.527** | **2.472** | **23.45%** |
+| XGBoost | 3.629 | 5.243 | 55.87% |
+| LightGBM | 3.555 | 5.142 | 54.73% |
+
+The walk-forward experiment strengthens the original holdout finding: on this synthetic dataset, the Moving Average baseline remained below the tested ML approaches on mean WMAPE across the three evaluated windows. This is a result of the specific recursive walk-forward setup and dataset, not a claim that simpler models are generally superior.
 
 Run:
 
@@ -52,7 +88,7 @@ The runner writes:
 - `reports/walk_forward_windows.csv`
 - `reports/walk_forward_summary.csv`
 
-These outputs are intended to support a more defensible model-selection decision before the final test forecast.
+The detailed window-level results are retained so model performance can be inspected rather than relying only on the mean.
 
 ## Feature engineering
 
@@ -113,15 +149,16 @@ The project now extends beyond a single train/validation benchmark into a portfo
 `src/flagship_analysis.py` generates reproducible views for daily sales trend, weekly and monthly seasonality, store and category comparisons, price vs sales, and event effects.
 
 ### Walk-forward validation
-Three historical 28-day windows are evaluated chronologically. The current Seasonal Naive baseline produced:
+The robustness check now evaluates all four main approaches across the same three historical 28-day windows.
 
-| Window | MAE | RMSE | WMAPE |
+| Model | Mean MAE | Mean RMSE | Mean WMAPE |
 |---|---:|---:|---:|
-| 2025-09-01 → 2025-09-28 | 1.742 | 2.606 | 26.11% |
-| 2025-10-06 → 2025-11-02 | 1.730 | 2.643 | 27.59% |
-| 2025-11-06 → 2025-12-03 | 1.679 | 2.706 | 27.51% |
+| Seasonal Naive | 1.717 | 2.652 | 27.07% |
+| Moving Average | **1.527** | **2.472** | **23.45%** |
+| XGBoost | 3.629 | 5.243 | 55.87% |
+| LightGBM | 3.555 | 5.142 | 54.73% |
 
-The variation across windows is evidence that model quality should not be judged from one holdout period.
+This is separate from the primary 28-day holdout comparison above. The walk-forward ML results use recursive forecasting, so later forecast-day lag features are built from prior predictions rather than future actual sales.
 
 ### Model improvement
 A log-target XGBoost configuration was tested against the original validation window. Its validation WMAPE was 25.08%, compared with 23.92% for the earlier XGBoost configuration and 21.94% for the Moving Average baseline. This does not replace the baseline; it demonstrates that target transformation is an experiment, not an assumed improvement.
@@ -197,6 +234,10 @@ Place the synthetic CSV files under `data/`, then run the analysis modules to re
 ### Validation performance
 
 ![28-day validation model comparison](docs/visuals/model_comparison.svg)
+
+### Walk-forward robustness
+
+![Three-window walk-forward model stability](docs/visuals/walk_forward_model_stability.svg)
 
 ### Demand-planning scenarios
 
