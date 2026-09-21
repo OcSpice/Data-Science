@@ -22,7 +22,7 @@ def test_main_runs_each_step_in_order(monkeypatch):
 
     assert len(calls) == 3
     assert all(check is True for _, _, check in calls)
-    assert [call[0][2:] for call in calls] == [
+    assert [call[0][1:] for call in calls] == [
         ["-m", "src.flagship_analysis"],
         ["-m", "src.run_walk_forward"],
         ["-m", "advanced_demand_planning.src.run_planning"],
