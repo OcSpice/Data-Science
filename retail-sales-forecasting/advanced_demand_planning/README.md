@@ -22,17 +22,32 @@ Therefore this module does not claim to reconstruct historical inventory perform
 Historical sales -> demand profiling -> segmentation -> forecast error -> uncertainty -> inventory scenario -> business simulation -> dashboard.
 
 ## Default assumptions
+- Planning baseline: recent 28-day mean demand
+- Forecast-error proxy: 7-day seasonal-naive residuals by item-store series
 - Lead time: 7 days
 - Service level: 95%
 - Z-value: 1.645
-- Safety stock uses historical forecast-error volatility
+- Safety stock uses the historical error standard deviation proxy
 - Reorder point = expected lead-time demand + safety stock
-- Scenario demand multipliers are configurable
+- Scenario demand multipliers: 0.90 / 1.00 / 1.10
+- Simulated inventory position: 7 days of baseline demand
+
+The error analysis is an uncertainty proxy, not a calibrated probabilistic forecast. The inventory position is also an explicit simulation assumption, not observed stock.
 
 ## Outputs
 - reports/demand_segments.csv
+- reports/demand_segment_summary.csv
 - reports/uncertainty_summary.csv
 - reports/inventory_scenarios.csv
 - reports/business_exposure.csv
+
+## Run the full planning layer
+From `retail-sales-forecasting/`:
+
+```bash
+python -m advanced_demand_planning.src.run_planning
+```
+
+This generates the demand profile, segment summary, uncertainty proxy, low/base/high inventory scenarios, and business-exposure summary in `reports/`.
 
 The inventory layer is a simulation because the current dataset has no actual inventory or lead-time observations. Those assumptions will be replaced when real retail data becomes available.
