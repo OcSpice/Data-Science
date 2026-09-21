@@ -48,12 +48,12 @@ def profile_item_store_demand(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def classify_segments(profile: pd.DataFrame) -> pd.Series:
-    q1 = profile["mean_daily_demand"].quantile(1 / 3)
-    q2 = profile["mean_daily_demand"].quantile(2 / 3)
-
+    # Rank by position rather than pd.cut on raw quantiles so tied demand
+    # values cannot create duplicate bin edges on small or discrete samples.
+    ranks = profile["mean_daily_demand"].rank(method="first", pct=True)
     volume = pd.cut(
-        profile["mean_daily_demand"],
-        bins=[-np.inf, q1, q2, np.inf],
+        ranks,
+        bins=[-np.inf, 1 / 3, 2 / 3, np.inf],
         labels=["Low volume", "Medium volume", "High volume"],
     )
 
