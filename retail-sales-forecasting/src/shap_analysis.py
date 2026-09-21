@@ -1,7 +1,7 @@
 from pathlib import Path
 import sys,numpy as np,pandas as pd,shap,matplotlib.pyplot as plt
 from xgboost import XGBRegressor
-sys.path.insert(0,str(Path(__file__).resolve().parent));from features import prepare_features
+sys.path.insert(0,str(Path(__file__).resolve().parent));from .features import prepare_features
 DATA=Path(__file__).resolve().parents[1]/"data";ROOT=Path(__file__).resolve().parents[1];OUT=ROOT/"reports";VIS=ROOT/"visuals"
 d=pd.concat([pd.read_csv(DATA/f"train_{y}.csv",low_memory=False) for y in (2023,2024,2025)],ignore_index=True)
 X=prepare_features(d).dropna();y=d.loc[X.index,"sales"]
