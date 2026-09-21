@@ -2,6 +2,30 @@
 
 End-to-end time-series forecasting and machine-learning portfolio project using a synthetic M5-style retail dataset.
 
+## Application-ready project snapshot
+
+**Role:** Data Analyst / Data Science portfolio project  
+**Domain:** Retail analytics, demand forecasting, inventory planning  
+**Scale:** 224 item-store series across 3 years of daily data  
+**Tools:** Python, Pandas, Scikit-learn, XGBoost, LightGBM, SHAP, Plotly, Streamlit, GitHub Actions
+
+### Resume-ready achievements
+
+- Built an end-to-end forecasting workflow across **224 item-store series** using EDA, feature engineering, statistical baselines and machine-learning models.
+- Evaluated **4 forecasting approaches** with MAE, RMSE and WMAPE using chronological and walk-forward validation.
+- Achieved **21.94% WMAPE** with a Moving Average baseline on the primary 28-day validation window, demonstrating that model complexity did not automatically improve performance.
+- Reduced held-out test WMAPE from **49.04% to 40.65%** with a volume-aware hybrid forecasting policy combining ML forecasts and demand-specific fallbacks.
+- Reduced low-volume WMAPE from **91.63% to 33.11%** in the same controlled experiment through demand segmentation and fallback forecasting.
+
+### What this project demonstrates
+
+**Data Analytics:** EDA, segmentation, KPI design, error analysis, business interpretation  
+**Data Science:** time-series forecasting, feature engineering, model comparison, walk-forward validation, SHAP explainability  
+**Business Analytics:** demand planning, safety stock, reorder points, scenario analysis  
+**Engineering:** modular Python, automated tests, reproducible reporting, Streamlit dashboard, GitHub Actions
+
+> **Data note:** This is a synthetic dataset structurally inspired by M5/Walmart-style retail forecasting. Forecasting and inventory results are portfolio experiments, not claims about a real retailer's historical performance.
+
 ## Business problem
 
 Retailers need reliable short-term demand forecasts for inventory planning, replenishment, staffing and promotion decisions.
