@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="430" viewBox="0 0 1200 430">
+<rect width="1200" height="430" fill="#ffffff"/>
+<text x="60" y="58" font-family="Arial,sans-serif" font-size="30" font-weight="700" fill="#111827">From Forecasting to Inventory Decisions</text>
+<text x="60" y="88" font-family="Arial,sans-serif" font-size="15" fill="#6b7280">End-to-end retail analytics workflow</text>
+<g font-family="Arial,sans-serif" font-size="16" font-weight="700" text-anchor="middle">
+<rect x="55" y="145" width="145" height="72" rx="12" fill="#f3f4f6"/><text x="127" y="188" fill="#111827">Data &amp; EDA</text>
+<rect x="230" y="145" width="145" height="72" rx="12" fill="#e5e7eb"/><text x="302" y="188" fill="#111827">Baselines</text>
+<rect x="405" y="145" width="145" height="72" rx="12" fill="#f3f4f6"/><text x="477" y="188" fill="#111827">ML Forecasting</text>
+<rect x="580" y="145" width="145" height="72" rx="12" fill="#e5e7eb"/><text x="652" y="188" fill="#111827">Validation</text>
+<rect x="755" y="145" width="145" height="72" rx="12" fill="#f3f4f6"/><text x="827" y="188" fill="#111827">Error &amp; SHAP</text>
+<rect x="930" y="145" width="215" height="72" rx="12" fill="#e5e7eb"/><text x="1037" y="177" fill="#111827">Demand Planning</text><text x="1037" y="199" fill="#111827">+ Scenarios</text>
+</g>
+<g stroke="#6b7280" stroke-width="3" fill="none">
+<path d="M200 181 H225"/><path d="M375 181 H400"/><path d="M550 181 H575"/><path d="M725 181 H750"/><path d="M900 181 H925"/>
+</g>
+<g font-family="Arial,sans-serif" font-size="15" fill="#4b5563">
+<text x="60" y="280">Outputs</text>
+<text x="60" y="315">• Forecast metrics: MAE, RMSE, WMAPE</text>
+<text x="60" y="342">• Demand segments and uncertainty proxy</text>
+<text x="60" y="369">• Safety stock and reorder points</text>
+<text x="620" y="315">• Low / base / high demand scenarios</text>
+<text x="620" y="342">• Business exposure and dashboard views</text>
+<text x="620" y="369">• Automated tests + reproducible pipeline</text>
+</g>
+</svg>
