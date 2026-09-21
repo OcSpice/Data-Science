@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="560" viewBox="0 0 1100 560">
+<rect width="1100" height="560" fill="#ffffff"/>
+<text x="60" y="58" font-family="Arial,sans-serif" font-size="30" font-weight="700" fill="#111827">Inventory Planning Scenario Exposure</text>
+<text x="60" y="88" font-family="Arial,sans-serif" font-size="15" fill="#6b7280">7-day lead time • 95% service level • simulated inventory position</text>
+<line x1="270" y1="125" x2="270" y2="470" stroke="#d1d5db"/>
+<line x1="270" y1="470" x2="1030" y2="470" stroke="#d1d5db"/>
+<g font-family="Arial,sans-serif" font-size="16" fill="#374151">
+<text x="60" y="180">Low demand</text><text x="60" y="285">Base demand</text><text x="60" y="390">High demand</text>
+</g>
+<g fill="#9ca3af">
+<rect x="270" y="145" width="547" height="55" rx="7"/><rect x="270" y="250" width="595" height="55" rx="7"/><rect x="270" y="355" width="643" height="55" rx="7"/>
+</g>
+<g font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#111827">
+<text x="835" y="180">11,097.60</text><text x="883" y="285">12,072.97</text><text x="931" y="390">13,048.35</text>
+</g>
+<g font-family="Arial,sans-serif" font-size="13" fill="#6b7280">
+<text x="270" y="500">0</text><text x="520" y="500">5k</text><text x="770" y="500">10k</text><text x="1030" y="500">15k</text>
+</g>
+<text x="60" y="535" font-family="Arial,sans-serif" font-size="14" fill="#6b7280">Reorder requirement rises with demand scenario; inventory and stockout flags are simulated, not historical observations.</text>
+</svg>
