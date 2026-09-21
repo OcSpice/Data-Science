@@ -44,6 +44,10 @@ model_cmp = report("model_comparison.csv")
 strategy = report("direct_vs_recursive_comparison.csv")
 segments = report("volume_segment_performance.csv")
 hybrid = report("hybrid_test_metrics.csv")
+planning_segments = report("demand_segment_summary.csv")
+planning_uncertainty = report("uncertainty_summary.csv")
+planning_scenarios = report("inventory_scenarios.csv")
+planning_exposure = report("business_exposure.csv")
 forecast = load_forecast()
 
 st.markdown("""
@@ -60,7 +64,17 @@ c2.metric("Best validation WMAPE", f"{best.WMAPE:.1%}" if best is not None else 
 c3.metric("Walk-forward WMAPE", "27.07%")
 c4.metric("Hybrid test WMAPE", f"{hybrid.WMAPE.iloc[0]:.1%}" if hybrid is not None else "—")
 
-section = st.sidebar.radio("Explore", ["Executive view","Forecast diagnostics","Model lab","Demand segmentation","Methodology"])
+section = st.sidebar.radio(
+    "Explore",
+    [
+        "Executive view",
+        "Forecast diagnostics",
+        "Model lab",
+        "Demand segmentation",
+        "Demand planning",
+        "Methodology",
+    ],
+)
 
 if section == "Executive view":
     st.subheader("What this project demonstrates")
@@ -125,6 +139,84 @@ elif section == "Model lab":
         st.caption("Controlled checkpoints: 1, 7, 14 and 28 days. Both strategies use the same feature set and XGBoost configuration.")
     st.info("The Moving Average baseline remains in the benchmark. Complexity is treated as an experiment that must earn its place through measured improvement.")
 
+
+elif section == "Demand planning":
+    st.subheader("From forecast error to inventory decisions")
+    st.caption("Operational planning layer built on the same retail forecasting workflow.")
+
+    if planning_exposure is None or planning_scenarios is None or planning_uncertainty is None or planning_segments is None:
+        st.warning("Planning reports have not been generated yet.")
+        st.code("python -m advanced_demand_planning.src.run_planning")
+        st.markdown(
+            "This layer uses a **7-day seasonal-naive error proxy**, a **7-day simulated "
+            "inventory position**, a **7-day lead time**, and a **95% service level**. "
+            "Inventory and stockout flags are simulated because the dataset contains no observed "
+            "inventory, purchase-order, supplier lead-time, or stockout records."
+        )
+    else:
+        base = planning_exposure.loc[
+            planning_exposure["scenario"].eq("Base demand")
+        ].iloc[0]
+
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric("Item-store series", f"{len(planning_uncertainty):,}")
+        c2.metric("Base reorder requirement", f"{base.total_reorder_requirement:,.0f}")
+        c3.metric("Simulated stockout-risk flags", f"{int(base.stockout_risk_count):,}")
+        c4.metric("Service level", "95%")
+
+        left, right = st.columns([1.05, .95])
+        with left:
+            st.markdown("**Demand profile**")
+            st.dataframe(
+                planning_segments.style.format({
+                    "mean_daily_demand": "{:.2f}",
+                    "avg_zero_demand_rate": "{:.1%}",
+                    "avg_cv": "{:.2f}",
+                }),
+                use_container_width=True,
+                hide_index=True,
+            )
+        with right:
+            st.markdown("**Scenario exposure**")
+            st.dataframe(
+                planning_exposure.style.format({
+                    "total_inventory": "{:,.0f}",
+                    "total_reorder_requirement": "{:,.0f}",
+                    "total_inventory_gap": "{:,.0f}",
+                }),
+                use_container_width=True,
+                hide_index=True,
+            )
+
+        scenario_plot = (
+            planning_scenarios.groupby("scenario", as_index=False)["reorder_point"]
+            .mean()
+            .sort_values("reorder_point")
+        )
+        fig = px.bar(
+            scenario_plot,
+            x="scenario",
+            y="reorder_point",
+            title="Average reorder point by demand scenario",
+            text_auto=".1f",
+        )
+        fig.update_layout(yaxis_title="Units", xaxis_title="")
+        st.plotly_chart(fig, use_container_width=True)
+
+        u1, u2, u3 = st.columns(3)
+        u1.metric("Median MAE proxy", f"{planning_uncertainty.mae.median():.2f}")
+        u2.metric("Median error SD", f"{planning_uncertainty.error_std.median():.2f}")
+        u3.metric(
+            "Median P95 absolute error",
+            f"{planning_uncertainty.error_p95_abs.median():.2f}",
+        )
+
+        st.info(
+            "Interpretation: the planning layer converts historical demand behavior and "
+            "forecast-error variability into scenario-based reorder requirements. These are "
+            "simulation outputs, not claims about historical stockouts or actual inventory."
+        )
+
 elif section == "Demand segmentation":
     st.subheader("Low-volume demand needs a different policy")
     if segments is not None:
@@ -158,5 +250,9 @@ reports/
   direct_vs_recursive_comparison.csv
   volume_segment_performance.csv
   hybrid_test_metrics.csv
+  demand_segment_summary.csv
+  uncertainty_summary.csv
+  inventory_scenarios.csv
+  business_exposure.csv
 """,language="text")
     st.markdown("**Split:** chronological train → validation → held-out test.  **Horizon:** 28 days.  **Metrics:** MAE, RMSE, WMAPE.  **Explainability:** SHAP.  **Dataset:** synthetic M5/Walmart-style retail data for portfolio demonstration, not proprietary Walmart data.")

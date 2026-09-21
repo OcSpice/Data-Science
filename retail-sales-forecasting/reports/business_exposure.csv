@@ -1,0 +1,4 @@
+scenario,total_inventory,total_reorder_requirement,stockout_risk_count,excess_inventory_count,total_inventory_gap
+Base demand,9753.75,12072.972166,224,0,-2319.222166
+High demand,9753.75,13048.347166,224,0,-3294.597166
+Low demand,9753.75,11097.597166,224,0,-1343.847166
