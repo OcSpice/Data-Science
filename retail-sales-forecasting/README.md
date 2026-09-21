@@ -10,7 +10,7 @@ Retailers need reliable short-term demand forecasts for inventory planning, repl
 
 ## Workflow
 
-Data validation → EDA → seasonality/decomposition → baselines → time-aware feature engineering → Random Forest/XGBoost/LightGBM → MAE/RMSE/WMAPE → error analysis → 28-day forecast → business recommendations → dashboard.
+Data validation → EDA → seasonality/decomposition → baselines → time-aware feature engineering → Random Forest/XGBoost/LightGBM → MAE/RMSE/WMAPE → walk-forward validation → error analysis → 28-day forecast → business recommendations → dashboard.
 
 ## Chronological split
 
@@ -31,7 +31,28 @@ The first benchmark is intentionally honest: the simple **Moving Average baselin
 | XGBoost | 1.604 | 2.907 | 23.92% |
 | LightGBM | 1.567 | 2.772 | 23.36% |
 
-This is an important analytical finding: model complexity is not automatically an improvement. The next iteration should use walk-forward validation and tuned multi-step forecasting before selecting a production model.
+This is an important analytical finding: model complexity is not automatically an improvement. The project now includes walk-forward evaluation utilities so model selection can be checked across multiple chronological windows rather than one validation period.
+
+## Walk-forward validation
+
+`src/walk_forward.py` provides:
+
+- Multiple chronological forecast windows
+- 28-day horizons by default
+- Seasonal-naive evaluation without future-data leakage
+- Window-level MAE, RMSE and WMAPE
+- Mean and standard deviation across windows
+
+Run:
+
+`python -m src.run_walk_forward`
+
+The runner writes:
+
+- `reports/walk_forward_windows.csv`
+- `reports/walk_forward_summary.csv`
+
+These outputs are intended to support a more defensible model-selection decision before the final test forecast.
 
 ## Feature engineering
 
@@ -42,6 +63,18 @@ This is an important analytical finding: model complexity is not automatically a
 - Store, state, item, department and category
 - Price and economic/weather variables
 - Event/SNAP indicators
+
+## EDA utilities
+
+`src/eda.py` provides reusable summaries for:
+
+- Dataset coverage and dimensions
+- Daily demand
+- Product category demand
+- Store demand
+- Weekday demand patterns
+
+This keeps the exploratory analysis reproducible instead of relying only on notebook screenshots.
 
 ## Error analysis
 
@@ -62,6 +95,7 @@ The benchmark is intentionally separated from the validation model-selection res
 - Modular Python
 - Automated tests
 - Leakage-aware chronological splitting
+- Walk-forward validation
 - Reproducible metrics
 - CSV reporting artifacts
 - Streamlit dashboard scaffold
