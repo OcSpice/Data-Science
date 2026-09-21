@@ -1,8 +1,6 @@
 # Retail Sales Forecasting & Demand Planning
 
-An end-to-end time-series forecasting and machine-learning portfolio project built around a synthetic M5-style retail dataset.
-
-> The dataset is synthetic and structurally inspired by the M5/Walmart forecasting format. It is not Walmart proprietary data.
+End-to-end time-series forecasting and machine-learning portfolio project using a synthetic M5-style retail dataset.
 
 ## Business problem
 
@@ -12,64 +10,62 @@ Retailers need reliable short-term demand forecasts for inventory planning, repl
 
 ## Workflow
 
-1. Data validation and chronological splitting
-2. Exploratory data analysis
-3. Time-series decomposition and seasonality analysis
-4. Baselines: Seasonal Naive and Moving Average
-5. Time-aware feature engineering: lag 1/7/14/28, rolling statistics, calendar/cyclical variables, store/product/category, price and external variables
-6. Machine-learning models: Random Forest, XGBoost, LightGBM
-7. Evaluation: MAE, RMSE, WMAPE
-8. Error analysis by store, category, product and forecast horizon
-9. Final 28-day forecast
-10. Business recommendations
-11. Dashboard-ready outputs
+Data validation → EDA → seasonality/decomposition → baselines → time-aware feature engineering → Random Forest/XGBoost/LightGBM → MAE/RMSE/WMAPE → error analysis → 28-day forecast → business recommendations → dashboard.
 
-## Data split
+## Chronological split
 
-| Split | Dates | Purpose |
-|---|---|---|
-| Train | 2023-01-01 → 2025-11-05 | Model fitting |
-| Validation | 2025-11-06 → 2025-12-03 | Model selection/tuning |
-| Test | 2025-12-04 → 2025-12-31 | Final unseen evaluation |
+- Train: 2023-01-01 to 2025-11-05
+- Validation: 2025-11-06 to 2025-12-03
+- Test: 2025-12-04 to 2025-12-31
 
-The test feature file contains no sales target; actual test sales are stored separately for final evaluation.
+The test feature file contains no target; actual test sales are stored separately.
 
-## Repository structure
+## Validation result
 
-```
-retail-sales-forecasting/
-├── data/
-├── src/
-│   ├── data.py
-│   ├── features.py
-│   ├── baselines.py
-│   ├── metrics.py
-│   └── modeling.py
-├── dashboard/
-├── tests/
-├── reports/
-└── requirements.txt
-```
+The first benchmark is intentionally honest: the simple **Moving Average baseline outperformed the tree models on this synthetic dataset** during the 28-day validation window.
 
-## Run locally
+| Model | MAE | RMSE | WMAPE |
+|---|---:|---:|---:|
+| Seasonal Naive | 1.679 | 2.706 | 27.51% |
+| Moving Average | **1.339** | **2.108** | **21.94%** |
+| XGBoost | 1.604 | 2.907 | 23.92% |
+| LightGBM | 1.567 | 2.772 | 23.36% |
 
-```bash
-pip install -r requirements.txt
-pytest -q
-```
+This is an important analytical finding: model complexity is not automatically an improvement. The next iteration should use walk-forward validation and tuned multi-step forecasting before selecting a production model.
 
-The synthetic dataset used by this project is intentionally kept outside the GitHub source tree when file-size limits make direct upload impractical. Place the dataset files in `data/` using the supplied dataset ZIP.
+## Feature engineering
 
-## Leakage control
+- Lag 1/7/14/28
+- Rolling mean 7/14/28
+- Rolling standard deviation 28
+- Day-of-week and month cyclical features
+- Store, state, item, department and category
+- Price and economic/weather variables
+- Event/SNAP indicators
 
-No random train/test split is used. Lag and rolling features are calculated only from observations available before the prediction date.
+## Error analysis
 
-## Portfolio extensions
+The project includes breakdowns by store, category, product and forecast horizon, plus feature-importance outputs for XGBoost and LightGBM.
 
-- Walk-forward validation
-- Hyperparameter tuning with time-series cross-validation
-- SHAP model explainability
-- Store/category/product error heatmaps
-- Forecast uncertainty and prediction intervals
-- Power BI/Tableau executive dashboard
-- Inventory safety-stock simulation
+## 28-day forecast
+
+A Seasonal Naive 28-day forecast is included as a transparent benchmark for the unseen test period. On the held-out test period it produced:
+
+- MAE: **3.091**
+- RMSE: **5.380**
+- WMAPE: **48.94%**
+
+The benchmark is intentionally separated from the validation model-selection result.
+
+## Engineering quality
+
+- Modular Python
+- Automated tests
+- Leakage-aware chronological splitting
+- Reproducible metrics
+- CSV reporting artifacts
+- Streamlit dashboard scaffold
+
+## Dataset note
+
+The data is synthetic and structurally inspired by M5/Walmart-style retail forecasting. It is not Walmart proprietary data.
