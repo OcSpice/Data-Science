@@ -187,6 +187,22 @@ Run with:
 Place the synthetic CSV files under `data/`, then run the analysis modules to regenerate reports. The dashboard reads the generated report files rather than embedding analysis logic in the UI.
 
 
+
+## Visual overview
+
+### End-to-end workflow
+
+![Retail forecasting and demand planning workflow](docs/visuals/project_flow.svg)
+
+### Validation performance
+
+![28-day validation model comparison](docs/visuals/model_comparison.svg)
+
+### Demand-planning scenarios
+
+![Inventory planning scenario exposure](docs/visuals/demand_planning_scenarios.svg)
+
+
 ## Advanced demand planning
 
 The project now converts forecast diagnostics into inventory-planning decisions at the item-store level.
