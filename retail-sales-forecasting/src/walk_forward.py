@@ -16,7 +16,6 @@ import pandas as pd
 from .baselines import moving_average
 from .features import prepare_model_features
 from .metrics import evaluate
-from .modeling import build_models
 
 
 @dataclass(frozen=True)
@@ -166,6 +165,8 @@ def evaluate_model_walk_forward(
     seed: int = 42,
 ) -> pd.DataFrame:
     """Evaluate baselines and selected ML models across all walk-forward windows."""
+    from .modeling import build_models
+
     frame = data.copy()
     frame["date"] = pd.to_datetime(frame["date"])
     rows = []
