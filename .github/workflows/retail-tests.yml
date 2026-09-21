@@ -11,9 +11,6 @@ on:
 jobs:
   unit-tests:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: retail-sales-forecasting
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,13 +23,15 @@ jobs:
           cache-dependency-path: retail-sales-forecasting/requirements.txt
 
       - name: Install test dependencies
+        working-directory: retail-sales-forecasting
         run: |
           python -m pip install --upgrade pip
           pip install pandas numpy scikit-learn pytest
 
       - name: Run unit tests
+        working-directory: retail-sales-forecasting
         run: |
-          pytest -q tests/test_metrics.py tests/test_features.py tests/test_volume_segmentation.py tests/test_walk_forward.py tests/test_run_all.py advanced_demand_planning/tests
+          python -m pytest -q tests/test_metrics.py tests/test_features.py tests/test_volume_segmentation.py tests/test_walk_forward.py tests/test_run_all.py advanced_demand_planning/tests
 
       # test_data.py depends on the local synthetic dataset files and is
       # intentionally excluded from CI because the dataset is not required
