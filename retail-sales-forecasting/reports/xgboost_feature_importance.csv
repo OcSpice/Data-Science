@@ -1,0 +1,9 @@
+feature,importance
+roll_mean_28,0.510699
+roll_mean_14,0.32226253
+wday_sin,0.015320879
+is_weekend,0.013852238
+wday_cos,0.012930001
+lag_7,0.010844
+sell_price,0.009771
+lag_28,0.008903
