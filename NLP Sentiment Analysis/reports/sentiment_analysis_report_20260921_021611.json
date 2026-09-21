@@ -1,0 +1,23 @@
+{
+  "author": "OGHENEOCHUKU EMMANUEL OGIDIAGBA",
+  "generated_at": "2026-09-21T02:16:11.369586",
+  "project_name": "NLP Sentiment Analysis and Customer Feedback Insight Engine",
+  "portfolio_category": "Data Science",
+  "dataset_size": 12000,
+  "executive_summary": {
+    "total_reviews_analyzed": 12000,
+    "sentiment_breakdown": {
+      "Positive": 6283,
+      "Negative": 2971,
+      "Neutral": 2746
+    },
+    "average_rating": 3.47425,
+    "key_finding": "Customer support is the most frequently occurring issue in negative reviews"
+  },
+  "model_performance": {
+    "accuracy": 1.0,
+    "test_size": 2400,
+    "train_size": 9600
+  },
+  "root_cause_analysis": {
+    "total_negative_reviews": 
