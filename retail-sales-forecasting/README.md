@@ -185,3 +185,81 @@ Run with:
 
 ### Reproducibility
 Place the synthetic CSV files under `data/`, then run the analysis modules to regenerate reports. The dashboard reads the generated report files rather than embedding analysis logic in the UI.
+
+
+## Advanced demand planning
+
+The project now converts forecast diagnostics into inventory-planning decisions at the item-store level.
+
+### Demand profiling
+Historical demand is profiled using:
+- Mean and standard deviation of daily demand
+- Total demand and zero-demand rate
+- Coefficient of variation
+- Recent-vs-early 28-day demand
+- Trend ratio
+- Volume and demand-behavior segments
+
+Segmentation is history-only and is designed to support differentiated planning rather than applying one rule to every series.
+
+### Uncertainty proxy
+The planning layer summarizes historical forecast-error behavior using a 7-day seasonal-naive error proxy:
+- MAE
+- Error standard deviation
+- P90/P95 absolute error
+
+This is explicitly an **uncertainty proxy**, not a calibrated probabilistic forecast.
+
+### Inventory policy
+The planning simulation uses:
+- 7-day lead time
+- 95% service level
+- z = 1.645
+- Recent 28-day mean as baseline planning demand
+- Error-standard-deviation proxy for safety stock
+- Reorder point = expected lead-time demand + safety stock
+- Low/base/high demand scenarios using 0.90/1.00/1.10 multipliers
+
+Because the dataset does not contain observed inventory, purchase orders, or historical stockout records, inventory position is simulated at 7 days of baseline demand. The resulting stockout-risk flags are therefore **policy-simulation outputs, not claims of historical stockouts**.
+
+### Scenario exposure
+The current synthetic-data run produces 224 item-store series. Under the stated simulation assumptions:
+
+| Scenario | Simulated inventory | Reorder requirement | Stockout-risk flags |
+|---|---:|---:|---:|
+| Low demand | 9,753.75 | 11,097.60 | 224 |
+| Base demand | 9,753.75 | 12,072.97 | 224 |
+| High demand | 9,753.75 | 13,048.35 | 224 |
+
+These results demonstrate how forecast uncertainty can be translated into replenishment requirements and scenario exposure. They should not be interpreted as evidence that the underlying synthetic retailer historically experienced stockouts.
+
+### Reproduce the full workflow
+
+From the `retail-sales-forecasting` directory:
+
+\`\`\`bash
+python run_all.py
+\`\`\`
+
+The one-command pipeline runs:
+1. Flagship EDA and baseline analysis
+2. Walk-forward validation
+3. Advanced demand planning
+
+Planning-only execution:
+
+\`\`\`bash
+python -m advanced_demand_planning.src.run_planning
+\`\`\`
+
+Dashboard:
+
+\`\`\`bash
+streamlit run dashboard/app.py
+\`\`\`
+
+The integrated dashboard includes forecast diagnostics, demand segmentation, uncertainty summaries, reorder-point scenarios, and business-exposure views when the planning reports are available.
+
+### Engineering and testing
+
+The project includes automated unit tests covering metrics, feature engineering, walk-forward logic, volume segmentation, pipeline orchestration, and demand-planning modules. GitHub Actions runs the test suite on changes to the retail forecasting project.
