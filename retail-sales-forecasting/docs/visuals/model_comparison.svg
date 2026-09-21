@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="560" viewBox="0 0 1100 560">
+<rect width="1100" height="560" fill="#ffffff"/>
+<text x="60" y="58" font-family="Arial,sans-serif" font-size="30" font-weight="700" fill="#111827">28-Day Validation — Model Comparison</text>
+<text x="60" y="88" font-family="Arial,sans-serif" font-size="15" fill="#6b7280">Lower WMAPE is better • synthetic retail dataset</text>
+<line x1="260" y1="125" x2="260" y2="475" stroke="#d1d5db"/>
+<line x1="260" y1="475" x2="1010" y2="475" stroke="#d1d5db"/>
+<g font-family="Arial,sans-serif" font-size="16" fill="#374151">
+<text x="60" y="175">Seasonal Naive</text><text x="60" y="255">Moving Average</text><text x="60" y="335">XGBoost</text><text x="60" y="415">LightGBM</text>
+</g>
+<g fill="#6b7280">
+<rect x="260" y="145" width="413" height="42" rx="6"/><rect x="260" y="225" width="329" height="42" rx="6"/><rect x="260" y="305" width="359" height="42" rx="6"/><rect x="260" y="385" width="350" height="42" rx="6"/>
+</g>
+<g font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#111827">
+<text x="690" y="173">27.51%</text><text x="606" y="253">21.94%</text><text x="636" y="333">23.92%</text><text x="627" y="413">23.36%</text>
+</g>
+<g font-family="Arial,sans-serif" font-size="13" fill="#6b7280">
+<text x="260" y="505">0%</text><text x="510" y="505">15%</text><text x="760" y="505">30%</text><text x="1010" y="505">45%</text>
+</g>
+<text x="60" y="535" font-family="Arial,sans-serif" font-size="14" fill="#6b7280">Key finding: the simple Moving Average baseline outperformed the tested ML models on this validation window.</text>
+</svg>
