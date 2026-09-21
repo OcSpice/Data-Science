@@ -140,3 +140,48 @@ The Streamlit dashboard is designed around the hiring-manager view: Sales → Fo
 Run locally with: `streamlit run dashboard/app.py`
 
 The project intentionally keeps the Moving Average baseline visible. Model complexity is treated as an experiment that must be justified by measured improvement.
+
+
+## Portfolio hardening layer
+
+### Direct vs recursive forecasting
+The multi-step experiment now uses the same feature matrix, log-target transformation, and XGBoost configuration for both strategies. Because fitting 28 independent direct models is computationally expensive on this multi-series dataset, the controlled portfolio benchmark evaluates operational checkpoints at **1, 7, 14 and 28 days**.
+
+| Strategy | Horizon | MAE | RMSE | WMAPE |
+|---|---:|---:|---:|---:|
+| Direct | 1 | 2.882 | 4.486 | 48.21% |
+| Recursive | 1 | 2.858 | 4.446 | 47.81% |
+| Direct | 7 | 2.830 | 4.008 | 49.17% |
+| Recursive | 7 | 2.748 | 4.004 | 47.76% |
+| Direct | 14 | 2.623 | 3.476 | 46.55% |
+| Recursive | 14 | 2.499 | 3.521 | 44.36% |
+| Direct | 28 | 2.866 | 4.208 | 49.12% |
+| Recursive | 28 | 2.914 | 4.201 | 49.94% |
+
+This is presented as an experiment rather than a universal winner: performance changes with forecast horizon.
+
+### Low-volume and intermittent-demand handling
+Series are segmented using historical demand only. The test experiment applies:
+- **Low volume:** 7-day moving-average fallback.
+- **Intermittent demand:** zero-demand policy when historical zero-rate reaches the configured threshold.
+- **Medium/high volume:** retain the ML forecast.
+
+On the held-out synthetic test set, the volume-aware hybrid produced **MAE 2.709, RMSE 4.453 and WMAPE 40.65%**, compared with **49.04% WMAPE** for the recursive log-XGBoost forecast before the volume policy. Low-volume WMAPE improved from **91.63% to 33.11%** in the same experiment.
+
+The policy is intentionally simple and is included to demonstrate demand-segmentation thinking, not to claim that a single fallback rule is optimal for every retail environment.
+
+### Dashboard
+The Streamlit dashboard is now structured as a portfolio front door:
+- Executive view
+- Forecast diagnostics
+- Direct vs recursive model lab
+- Demand segmentation
+- Methodology
+
+It includes interactive store/category/horizon filtering when the forecast output is present, KPI cards, Plotly charts, and concise business interpretation.
+
+Run with:
+`streamlit run dashboard/app.py`
+
+### Reproducibility
+Place the synthetic CSV files under `data/`, then run the analysis modules to regenerate reports. The dashboard reads the generated report files rather than embedding analysis logic in the UI.
