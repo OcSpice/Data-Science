@@ -49,15 +49,18 @@ This is deliberately retained as a portfolio finding: more complex machine-learn
 
 ## 5. Forecast robustness
 
-Three chronological 28-day windows were evaluated using the Seasonal Naive benchmark:
+The robustness check evaluates all four main approaches across three chronological 28-day windows. The baseline methods use only the historical training window. XGBoost and LightGBM are fit separately for each window and forecast recursively, so each later forecast day uses prior predictions rather than future actual sales as lag inputs.
 
-| Window | MAE | RMSE | WMAPE |
+| Model | Mean MAE | Mean RMSE | Mean WMAPE |
 |---|---:|---:|---:|
-| 2025-09-01 → 2025-09-28 | 1.742 | 2.606 | 26.11% |
-| 2025-10-06 → 2025-11-02 | 1.730 | 2.643 | 27.59% |
-| 2025-11-06 → 2025-12-03 | 1.679 | 2.706 | 27.51% |
+| Seasonal Naive | 1.717 | 2.652 | 27.07% |
+| Moving Average | **1.527** | **2.472** | **23.45%** |
+| XGBoost | 3.629 | 5.243 | 55.87% |
+| LightGBM | 3.555 | 5.142 | 54.73% |
 
-The variation across windows demonstrates why chronological validation is preferable to relying on a single holdout period.
+The walk-forward results support the same broad observation as the primary holdout: on this synthetic dataset and evaluation setup, the Moving Average baseline remained below the tested ML approaches on mean WMAPE. The result is dataset- and setup-specific rather than a general rule about forecasting model complexity.
+
+The detailed window-level output is stored in `reports/walk_forward_windows.csv`, while `reports/walk_forward_summary.csv` contains the mean and standard deviation for each model.
 
 ## 6. Explainability and error analysis
 
