@@ -1,0 +1,2 @@
+MAE,RMSE,WMAPE,low_volume_policy,intermittent_policy
+2.708814,4.452873,0.406549,7-day moving average,zero forecast
