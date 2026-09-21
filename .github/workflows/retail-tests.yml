@@ -32,13 +32,7 @@ jobs:
 
       - name: Run unit tests
         run: |
-          pytest -q \\
-            tests/test_metrics.py \\
-            tests/test_features.py \\
-            tests/test_volume_segmentation.py \\
-            tests/test_walk_forward.py \\
-            tests/test_run_all.py \\
-            advanced_demand_planning/tests
+          pytest -q tests/test_metrics.py tests/test_features.py tests/test_volume_segmentation.py tests/test_walk_forward.py tests/test_run_all.py advanced_demand_planning/tests
 
       # test_data.py depends on the local synthetic dataset files and is
       # intentionally excluded from CI because the dataset is not required
