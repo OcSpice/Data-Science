@@ -1,0 +1,16 @@
+feature,mean_abs_shap
+lag_7,0.134409
+lag_14,0.104621
+lag_1,0.092718
+lag_28,0.069801
+cat_id_FOODS,0.030377
+dow_sin,0.018875
+store_id_TX_3,0.016528
+store_id_CA_3,0.015785
+store_id_TX_1,0.015177
+fuel_price,0.012957
+store_id_CA_1,0.011510
+store_id_WI_1,0.010757
+week_of_year,0.009897
+cpi,0.009268
+dept_id_HOBBIES_2,0.007513

@@ -1,0 +1,4 @@
+Model,MAE,RMSE,WMAPE
+xgb_base,1.700003,2.978080,0.252322
+xgb_regularized,1.705709,3.034895,0.253169
+xgb_log_target,1.689591,3.105601,0.250776
