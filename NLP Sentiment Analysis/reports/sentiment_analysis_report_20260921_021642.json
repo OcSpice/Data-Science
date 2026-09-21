@@ -1,0 +1,82 @@
+{
+  "author": "OGHENEOCHUKU EMMANUEL OGIDIAGBA",
+  "generated_at": "2026-09-21T02:16:42.470014",
+  "project_name": "NLP Sentiment Analysis and Customer Feedback Insight Engine",
+  "portfolio_category": "Data Science",
+  "dataset_size": 12000,
+  "executive_summary": {
+    "total_reviews_analyzed": 12000,
+    "sentiment_breakdown": {
+      "Positive": 6283,
+      "Negative": 2971,
+      "Neutral": 2746
+    },
+    "average_rating": 3.47425,
+    "key_finding": "Customer support is the most frequently occurring issue in negative reviews"
+  },
+  "model_performance": {
+    "accuracy": 1.0,
+    "test_size": 2400,
+    "train_size": 9600
+  },
+  "root_cause_analysis": {
+    "total_negative_reviews": 2971,
+    "reviews_mentioning_support": 198,
+    "support_mention_percentage": 6.66,
+    "top_root_cause_keywords": [
+      [
+        "customer support",
+        198
+      ],
+      [
+        "misleading marketing",
+        228
+      ],
+      [
+        "work nothing",
+        228
+      ],
+      [
+        "nothing like",
+        228
+      ],
+      [
+        "like advertised",
+        228
+      ],
+      [
+        "advertised cancelling",
+        228
+      ],
+      [
+        "cancelling immediately",
+        228
+      ],
+      [
+        "work nothing like",
+        228
+      ],
+      [
+        "nothing like advertised",
+        228
+      ],
+      [
+        "like advertised cancelling",
+        228
+      ]
+    ],
+    "customer_support_is_primary_issue": true,
+    "author": "OGHENEOCHUKU EMMANUEL OGIDIAGBA"
+  },
+  "visualizations": {
+    "sentiment_distribution": "/workspace/NLP Sentiment Analysis/reports/sentiment_distribution.png",
+    "word_cloud": "/workspace/NLP Sentiment Analysis/reports/negative_reviews_wordcloud.png",
+    "root_causes": "/workspace/NLP Sentiment Analysis/reports/top_root_causes.png"
+  },
+  "business_recommendations": [
+    "Prioritize customer support team expansion and training",
+    "Implement faster response time SLAs for support tickets",
+    "Create self-service knowledge base for common issues",
+    "Establish proactive outreach for customers with unresolved issues"
+  ]
+}
