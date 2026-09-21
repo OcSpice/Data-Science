@@ -4,7 +4,7 @@ then predict exactly the h-th future day from the common forecast origin.
 """
 import numpy as np,pandas as pd
 from xgboost import XGBRegressor
-from features import prepare_features
+from .features import prepare_features
 
 def direct_forecast(history,future,horizons=range(1,29)):
     history=history.sort_values(["id","date"]).copy()
