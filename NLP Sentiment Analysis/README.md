@@ -24,7 +24,7 @@ This is a **proxy-label methodology**. The classes represent rating-derived sent
 ### Data-quality audit
 - **845** missing `Review Text` values
 - **0** exact duplicate rows
-- **13** repeated non-empty review texts after normalization
+- **7** repeated non-empty review texts after normalization
 - **22,634** unique reviews remaining for modeling
 
 | Sentiment | Reviews | Approx. share |
@@ -60,9 +60,9 @@ Models evaluated:
 | Model | Accuracy | Macro-F1 | Macro Precision | Macro Recall | ROC-AUC |
 |---|---:|---:|---:|---:|---:|
 | Majority baseline | 77.05% | 0.2901 | 0.2568 | 0.3333 | — |
-| Naive Bayes | 82.28% | 0.5658 | 0.6604 | 0.5269 | 0.9035 |
-| Logistic Regression | 78.73% | **0.6119** | 0.5943 | **0.6425** | 0.8913 |
-| Linear SVM | 80.85% | 0.6011 | 0.6014 | 0.6008 | 0.8826 |
+| Naive Bayes | **82.37%** | 0.5692 | **0.6622** | 0.5304 | **0.9036** |
+| Logistic Regression | 78.66% | **0.6100** | 0.5933 | **0.6392** | 0.8911 |
+| Linear SVM | 80.80% | 0.6019 | 0.6025 | 0.6013 | 0.8763 |
 
 The majority baseline is a reference point and is not treated as a ranking model for ROC/PR-AUC. Accuracy is not interpreted in isolation because of class imbalance.
 
