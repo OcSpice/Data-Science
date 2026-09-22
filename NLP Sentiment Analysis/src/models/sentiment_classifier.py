@@ -88,20 +88,21 @@ class SentimentClassifier:
             ),
         }
 
-        if scores is not None:
-            try:
-                result["roc_auc_ovr_macro"] = float(
-                    roc_auc_score(y_encoded, scores, multi_class="ovr", average="macro")
-                )
-                result["pr_auc_ovr_macro"] = float(
-                    average_precision_score(
-                        np.eye(len(LABELS))[y_encoded], scores, average="macro"
-                    )
-                )
-            except ValueError:
-                # Some model/test configurations may not support multiclass AUC.
-                result["roc_auc_ovr_macro"] = None
-                result["pr_auc_ovr_macro"] = None
+        if scores is not None and self.model_type != "majority":
+            roc_values = []
+            pr_values = []
+            for class_idx in range(len(LABELS)):
+                class_true = (y_encoded == class_idx).astype(int)
+                class_scores = scores[:, class_idx]
+                if len(np.unique(class_true)) < 2:
+                    continue
+                try:
+                    roc_values.append(roc_auc_score(class_true, class_scores))
+                    pr_values.append(average_precision_score(class_true, class_scores))
+                except ValueError:
+                    continue
+            result["roc_auc_ovr_macro"] = float(np.mean(roc_values)) if roc_values else None
+            result["pr_auc_ovr_macro"] = float(np.mean(pr_values)) if pr_values else None
         else:
             result["roc_auc_ovr_macro"] = None
             result["pr_auc_ovr_macro"] = None
