@@ -90,7 +90,7 @@ class TestSentimentClassifier:
 
 class TestDataLoader:
     def test_expected_columns_match_real_dataset_schema(self):
-        expected = set(DataLoader.EXPECTED_COLUMNS)
+        expected = set(DataLoader.REQUIRED_COLUMNS)
         assert "Review Text" in expected
         assert "Rating" in expected
         assert "Recommended IND" in expected
