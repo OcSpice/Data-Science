@@ -399,7 +399,7 @@ class TestChronologicalPipelineBoundaries:
         params, table = select_parameters(train, validation)
 
         assert set(params) == {"alpha", "beta", "gamma"}
-        assert len(table) == 5 * 4 * 4
+        assert len(table) == 5 * 5 * 4
         assert table["MAPE"].is_monotonic_increasing
         assert table.iloc[0]["MAPE"] <= table.iloc[-1]["MAPE"]
 
