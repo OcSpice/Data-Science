@@ -76,6 +76,17 @@ def test_theme_analysis_is_descriptive():
     assert "causal" in result["interpretation_note"].lower()
 
 
+def test_negative_phrase_analysis_filters_stopwords():
+    analyzer = ThemeAnalyzer()
+    result = analyzer.analyze_negative_reviews([
+        "the customer support was very poor",
+        "the customer support was poor",
+        "the billing issue was terrible",
+    ], top_n=10)
+    assert all("the " not in phrase.split(" ", 1)[0] for phrase, _ in result["top_bigrams"])
+    assert ("customer support", 2) in result["top_bigrams"]
+
+
 def test_duplicate_summary():
     loader = DataLoader("unused.csv")
     import pandas as pd
@@ -96,6 +107,8 @@ def test_duplicate_summary():
     assert summary["exact_duplicate_rows"] == 2
     assert summary["unique_duplicate_texts"] == 1
     assert summary["duplicate_texts_with_conflicting_labels"] == 0
+    assert summary["normalized_repeated_template_rows"] == 2
+    assert summary["normalized_repeated_template_count"] == 1
 
 
 def test_expected_schema():
