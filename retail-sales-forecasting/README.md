@@ -319,4 +319,4 @@ The integrated dashboard includes forecast diagnostics, demand segmentation, unc
 
 ### Engineering and testing
 
-The project includes automated unit tests covering metrics, feature engineering, walk-forward logic, volume segmentation, pipeline orchestration, and demand-planning modules. GitHub Actions runs the test suite on changes to the retail forecasting project.
+The project includes automated unit tests covering metrics, feature engineering, walk-forward logic, volume segmentation, pipeline orchestration, and demand-planning modules. GitHub Actions runs on changes to the retail forecasting project and validates the full dependency set on Python 3.11, executes the complete test suite, runs the end-to-end `python run_all.py` pipeline from a clean runner, and uploads the generated validation reports as a workflow artifact.
