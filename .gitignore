@@ -30,3 +30,8 @@ dist/
 .vscode/
 .idea/
 .DS_Store
+
+# Project-generated analytical outputs
+Customer Churn Prediction Model/outputs/*.json
+Customer Churn Prediction Model/outputs/*.txt
+Customer Churn Prediction Model/outputs/*.joblib
