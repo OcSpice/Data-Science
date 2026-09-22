@@ -1,13 +1,13 @@
 """
-NLP Sentiment Analysis and Customer Feedback Insight Engine
-Author: OGHENEOCHUKU EMMANUEL OGIDIAGBA
-
-Main pipeline orchestration module that integrates all components.
+Leakage-safe NLP sentiment analysis and customer feedback analytics pipeline.
 """
 
 import sys
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict
+
+import pandas as pd
+from sklearn.model_selection import train_test_split
 
 sys.path.insert(0, str(Path(__file__).parent))
 
@@ -21,171 +21,122 @@ from insights.report_generator import ReportGenerator
 
 
 class SentimentAnalysisPipeline:
-    """
-    Main pipeline class orchestrating the complete sentiment analysis workflow.
-    
-    Attributes:
-        AUTHOR: Class-level constant for author attribution
-        data_path: Path to the input dataset
-        output_dir: Directory for saving outputs
-    """
-    
-    AUTHOR = "OGHENEOCHUKU EMMANUEL OGIDIAGBA"
-    
-    def __init__(self, data_path: str, output_dir: str = 'reports'):
-        """
-        Initialize the sentiment analysis pipeline.
-        
-        Args:
-            data_path: Path to the customer reviews CSV file
-            output_dir: Directory for saving reports and visualizations
-        """
+    """Orchestrates leakage-safe modeling and descriptive customer-feedback analysis."""
+
+    def __init__(self, data_path: str, output_dir: str = "reports", random_state: int = 42):
         self.data_path = data_path
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
-        
+        self.random_state = random_state
         self.data_loader = DataLoader(data_path)
         self.preprocessor = TextPreprocessor()
         self.vectorizer = CustomTFIDFVectorizer(max_features=3000, ngram_range=(1, 2))
-        self.classifier = SentimentClassifier(model_type='svm')
-        self.root_cause_analyzer = RootCauseAnalyzer()
+        self.analyzer = RootCauseAnalyzer()
         self.visualization_gen = VisualizationGenerator(str(self.output_dir))
         self.report_generator = ReportGenerator(str(self.output_dir))
-        
-        self.data = None
-        self.preprocessed_texts = None
-        self.X_tfidf = None
-        self.model_metrics = None
-    
+
+    def _prepare_model_data(self):
+        labels = self.data["Sentiment"].to_numpy()
+        texts = self.preprocessed_texts
+        train_texts, test_texts, y_train_raw, y_test_raw = train_test_split(
+            texts, labels, test_size=0.20, random_state=self.random_state, stratify=labels
+        )
+        # Leakage control: vocabulary and IDF are fitted on training text only.
+        X_train = self.vectorizer.fit_transform(train_texts)
+        X_test = self.vectorizer.transform(test_texts)
+        label_helper = SentimentClassifier()
+        return X_train, X_test, label_helper.prepare_labels(y_train_raw), label_helper.prepare_labels(y_test_raw)
+
+    def _model_comparison(self, X_train, X_test, y_train, y_test) -> Dict:
+        comparison = {}
+        majority_class = int(pd.Series(y_train).mode().iloc[0])
+        majority_pred = [majority_class] * len(y_test)
+        comparison["majority_baseline"] = {
+            "model": "majority_baseline",
+            "accuracy": float((pd.Series(y_test).to_numpy() == majority_class).mean()),
+            "precision_macro": 0.0, "recall_macro": 0.0, "f1_macro": 0.0,
+            "f1_weighted": 0.0, "roc_auc_macro": None, "pr_auc_macro": None,
+            "train_size": int(len(y_train)), "test_size": int(len(y_test)),
+            "confusion_matrix": [],
+            "classification_report": {},
+        }
+        for model_type in ["naive_bayes", "logistic_regression", "svm"]:
+            model = SentimentClassifier(model_type=model_type, random_state=self.random_state)
+            comparison[model_type] = model.fit_and_evaluate(X_train, X_test, y_train, y_test)
+        return comparison
+
     def run(self, generate_reports: bool = True) -> Dict:
-        """
-        Execute the complete sentiment analysis pipeline.
-        
-        Args:
-            generate_reports: Whether to generate visualizations and reports
-            
-        Returns:
-            Dictionary containing all analysis results
-        """
-        print("=" * 60)
-        print("NLP SENTIMENT ANALYSIS PIPELINE")
-        print(f"Author: {self.AUTHOR}")
-        print("=" * 60)
-        
-        print("\n[Step 1/6] Loading data...")
         self.data = self.data_loader.load()
         sentiment_summary = self.data_loader.get_summary()
-        print(f"Loaded {sentiment_summary['total_records']} reviews")
-        
-        print("\n[Step 2/6] Preprocessing text...")
-        raw_reviews = self.data['Review'].tolist()
-        self.preprocessed_texts = self.preprocessor.preprocess_batch(raw_reviews)
-        print(f"Preprocessed {len(self.preprocessed_texts)} reviews")
-        
-        print("\n[Step 3/6] Building TF-IDF features...")
-        self.X_tfidf = self.vectorizer.fit_transform(self.preprocessed_texts)
-        feature_names = self.vectorizer.get_feature_names()
-        print(f"Created TF-IDF matrix with {len(feature_names)} features")
-        
-        print("\n[Step 4/6] Training sentiment classifier...")
-        labels = self.data['Sentiment'].values
-        self.model_metrics = self.classifier.train(self.X_tfidf, labels)
-        print(f"Model accuracy: {self.model_metrics['accuracy']:.2%}")
-        
-        print("\n[Step 5/6] Performing root-cause analysis...")
-        negative_mask = self.data['Sentiment'] == 'Negative'
-        negative_texts = [t for t, m in zip(self.preprocessed_texts, negative_mask) if m]
-        negative_count = negative_mask.sum()
-        root_cause_summary = self.root_cause_analyzer.get_root_cause_summary(
-            negative_texts, negative_count
+        self.preprocessed_texts = self.preprocessor.preprocess_batch(
+            self.data["Review"].fillna("").astype(str).tolist()
         )
-        print(f"Identified {len(root_cause_summary['top_root_cause_keywords'])} top root-cause keywords")
-        print(f"Customer support mentions: {root_cause_summary['reviews_mentioning_support']}")
-        
+
+        duplicate_summary = self.data_loader.get_duplicate_summary()
+        category_sentiment = self.data_loader.get_category_sentiment_summary()
+
+        X_train, X_test, y_train, y_test = self._prepare_model_data()
+        model_comparison = self._model_comparison(X_train, X_test, y_train, y_test)
+
+        theme_analysis = self.analyzer.analyze_themes(
+            self.data["Review"].fillna("").astype(str).tolist(),
+            self.data["Sentiment"].tolist(),
+            self.data["Category"].tolist(),
+        )
+        negative_texts = [
+            text for text, sentiment in zip(self.preprocessed_texts, self.data["Sentiment"])
+            if sentiment == "Negative"
+        ]
+
         results = {
-            'sentiment_summary': sentiment_summary,
-            'model_metrics': self.model_metrics,
-            'root_cause_summary': root_cause_summary
+            "sentiment_summary": sentiment_summary,
+            "data_quality": {"duplicate_summary": duplicate_summary, "category_sentiment": category_sentiment},
+            "model_comparison": model_comparison,
+            "theme_analysis": theme_analysis,
+            "evaluation_design": {
+                "split_strategy": "Stratified 80/20 train/test split",
+                "tfidf_fit_scope": "Training set only",
+                "random_state": self.random_state,
+                "metrics": ["accuracy", "precision_macro", "recall_macro", "f1_macro", "f1_weighted", "roc_auc_macro", "pr_auc_macro"],
+            },
         }
-        
+
         if generate_reports:
-            print("\n[Step 6/6] Generating visualizations and reports...")
-            
             viz_paths = self.visualization_gen.create_all_visualizations(
-                sentiment_counts=sentiment_summary['sentiment_distribution'],
+                sentiment_counts=sentiment_summary["sentiment_distribution"],
                 negative_texts=negative_texts,
-                root_cause_keywords=root_cause_summary['top_root_cause_keywords']
+                root_cause_keywords=theme_analysis["top_negative_phrases"],
             )
-            
-            json_report_path = self.report_generator.generate_json_report(
+            results["visualization_paths"] = viz_paths
+            results["json_report_path"] = self.report_generator.generate_json_report(
                 sentiment_metrics=sentiment_summary,
-                model_metrics=self.model_metrics,
-                root_cause_summary=root_cause_summary,
-                visualization_paths=viz_paths
+                model_metrics=model_comparison,
+                theme_analysis=theme_analysis,
+                data_quality=results["data_quality"],
+                evaluation_design=results["evaluation_design"],
+                visualization_paths=viz_paths,
             )
-            
-            text_summary_path = self.report_generator.generate_text_summary(
+            results["text_summary_path"] = self.report_generator.generate_text_summary(
                 sentiment_metrics=sentiment_summary,
-                root_cause_summary=root_cause_summary
+                model_metrics=model_comparison,
+                theme_analysis=theme_analysis,
+                data_quality=results["data_quality"],
             )
-            
-            metadata_path = self.report_generator.save_metadata_only()
-            
-            results['visualization_paths'] = viz_paths
-            results['json_report_path'] = json_report_path
-            results['text_summary_path'] = text_summary_path
-            results['metadata_path'] = metadata_path
-        
-        print("\n" + "=" * 60)
-        print("PIPELINE COMPLETED SUCCESSFULLY")
-        print(f"Author: {self.AUTHOR}")
-        print("=" * 60)
-        
         return results
-    
-    def predict_sentiment(self, new_reviews: list) -> list:
-        """
-        Predict sentiment for new reviews using the trained model.
-        
-        Args:
-            new_reviews: List of new review texts
-            
-        Returns:
-            List of predicted sentiment labels
-        """
-        if not self.classifier.is_fitted:
-            raise ValueError("Model must be trained first. Call run() before predicting.")
-        
-        preprocessed = self.preprocessor.preprocess_batch(new_reviews)
-        X_new = self.vectorizer.transform(preprocessed)
-        predictions = self.classifier.predict(X_new)
-        
-        return predictions.tolist()
 
 
 def main():
-    """Main entry point for running the pipeline."""
     current_dir = Path(__file__).parent.parent
-    data_path = current_dir / 'Customer_Reviews_Dataset.csv'
-    
-    if not data_path.exists():
-        data_path = Path('Customer_Reviews_Dataset.csv')
-    
     pipeline = SentimentAnalysisPipeline(
-        data_path=str(data_path),
-        output_dir=str(current_dir / 'reports')
+        data_path=str(current_dir / "Customer_Reviews_Dataset.csv"),
+        output_dir=str(current_dir / "reports"),
     )
-    
     results = pipeline.run(generate_reports=True)
-    
-    print("\nKey Findings:")
-    print(f"- Total reviews processed: {results['sentiment_summary']['total_records']:,}")
-    print(f"- Model accuracy: {results['model_metrics']['accuracy']:.2%}")
-    print(f"- Primary root cause: Customer Support")
-    print(f"- Support-related negative reviews: {results['root_cause_summary']['reviews_mentioning_support']}")
-    
+    print("\nModel comparison:")
+    for name, metrics in results["model_comparison"].items():
+        print(f"- {name}: Macro-F1={metrics['f1_macro']:.3f}")
     return results
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
