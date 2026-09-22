@@ -1,16 +1,23 @@
-name: Retail forecasting tests
+name: Retail Forecasting Validation
 
 on:
   push:
-    branches: [main, retail-demand-planning]
+    branches:
+      - main
+    paths:
+      - "retail-sales-forecasting/**"
+      - ".github/workflows/retail-tests.yml"
   pull_request:
     paths:
       - "retail-sales-forecasting/**"
       - ".github/workflows/retail-tests.yml"
 
 jobs:
-  unit-tests:
+  validate-retail-forecasting:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: retail-sales-forecasting
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -22,17 +29,19 @@ jobs:
           cache: pip
           cache-dependency-path: retail-sales-forecasting/requirements.txt
 
-      - name: Install test dependencies
-        working-directory: retail-sales-forecasting
-        run: |
-          python -m pip install --upgrade pip
-          pip install pandas numpy scikit-learn pytest
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
 
       - name: Run unit tests
-        working-directory: retail-sales-forecasting
-        run: |
-          python -m pytest -q tests/test_metrics.py tests/test_features.py tests/test_volume_segmentation.py tests/test_walk_forward.py tests/test_run_all.py advanced_demand_planning/tests
+        run: python -m pytest -q
 
-      # test_data.py depends on the local synthetic dataset files and is
-      # intentionally excluded from CI because the dataset is not required
-      # to exercise the pure unit-test layer.
+      - name: Run full retail forecasting and demand-planning pipeline
+        run: python run_all.py
+
+      - name: Upload validation reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: retail-forecasting-validation-reports
+          path: |
+            retail-sales-forecasting/reports/*.csv
+            retail-sales-forecasting/reports/*.md
