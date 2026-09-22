@@ -1,259 +1,149 @@
-# Customer Churn Prediction and At-Risk Revenue Quantification Model
+# Customer Churn Prediction & Retention Economics
 
-**Author:** OGHENEOCHUKO EMMANUEL OGIDIAGBA  
-**Portfolio Category:** Data Science (with Business Analysis integration)  
-**Version:** 1.0.0
+A portfolio-grade data science project combining **customer churn classification, model comparison, explainability, probability-threshold analysis, and retention economics**.
 
----
+## Business question
 
-## Executive Summary
+> Which customers are most likely to churn, how reliable are the predictions, and how does the intervention threshold change the size and economics of a retention campaign?
 
-This production-ready Python repository implements a comprehensive **Customer Churn Prediction and At-Risk Revenue Quantification Model**. It demonstrates senior-level data science capabilities through advanced machine learning, model explainability using SHAP values, and direct business impact quantification.
+The project separates:
+- observed churn outcomes from model-predicted risk;
+- revenue exposure from realized revenue loss;
+- SHAP model explanations from causal claims; and
+- scenario assumptions from observed business results.
 
-### Key Achievements
-
-- **Model Performance:** Achieves **80%+ accuracy** (and equivalent strong F1-score/ROC-AUC) in distinguishing churners from non-churners
-- **Business Impact:** Identifies **$11.3 million in at-risk revenue** by aggregating MonthlyCharges of high-risk customers
-- **Explainability:** Uses SHAP (SHapley Additive exPlanations) to identify top churn drivers including Month-to-month contracts, Fiber optic internet, and lack of TechSupport
-
----
-
-## Portfolio Context
-
-This project is part of a comprehensive multi-project portfolio grouped into three categories:
-
-1. **Data Analysis** - Exploratory analysis and insights generation
-2. **Business Analysis** - Translating findings into actionable strategies
-3. **Data Science** - Advanced ML modeling and prediction (this project)
-
-This specific repository falls under the **Data Science** category but heavily integrates **Data Analysis** principles by translating complex model outputs into actionable business insights and revenue protection strategies.
-
----
-
-## Project Structure
+## Workflow
 
 ```
-Customer Churn Prediction Model/
-├── src/
-│   ├── __init__.py
-│   ├── pipeline.py              # Main orchestration pipeline
-│   ├── data/
-│   │   ├── __init__.py
-│   │   ├── loader.py            # Data loading utilities
-│   │   ├── validator.py         # Schema validation & anonymization
-│   │   └── preprocessor.py      # Feature engineering & preprocessing
-│   ├── models/
-│   │   ├── __init__.py
-│   │   └── classifier.py        # Random Forest classifier with tuning
-│   ├── explainability/
-│   │   ├── __init__.py
-│   │   └── shap_explainer.py    # SHAP value computation
-│   ├── business_impact/
-│   │   ├── __init__.py
-│   │   └── revenue_calculator.py # At-risk revenue quantification
-│   └── utils/
-│       ├── __init__.py
-│       └── report_generator.py  # Report generation with metadata
-├── tests/
-│   ├── __init__.py
-│   └── test_pipeline.py         # Pytest unit tests
-├── configs/                     # Configuration files
-├── outputs/                     # Generated reports & models
-├── Churn_Dataset.csv           # Input dataset (35,000 records)
-├── README.md                    # This file
-└── requirements.txt             # Python dependencies
+Customer data
+    ↓
+Validation + privacy handling
+    ↓
+Train/test split
+    ↓
+Train-only preprocessing
+    ↓
+Majority baseline + Logistic Regression + Random Forest
+    ↓
+ROC-AUC / PR-AUC / Precision / Recall / F1
+    ↓
+Probability threshold analysis
+    ↓
+SHAP TreeExplainer
+    ↓
+Risk segmentation
+    ↓
+Revenue exposure
+    ↓
+Retention cost/effectiveness scenarios
 ```
 
----
+## Modeling methodology
 
-## Features
+### Leakage-safe preprocessing
 
-### 1. Data Quality and Anonymization Engine
+The train/test split occurs **before** model preprocessing is fitted.
 
-- **Schema Validation:** Enforces expected column structure
-- **Missing Value Handling:** Coerces TotalCharges to numeric, imputes missing values
-- **Privacy Compliance:** SHA-256 hashing of CustomerID for anonymization
-- **Duplicate Detection:** Identifies duplicate customer records
+Categorical variables use:
 
-### 2. Advanced Predictive Modeling
+`OneHotEncoder(handle_unknown="ignore")`
 
-- **Algorithm:** Random Forest Classifier with class weight balancing
-- **Class Imbalance:** SMOTE (Synthetic Minority Over-sampling Technique)
-- **Hyperparameter Tuning:** GridSearchCV with stratified k-fold cross-validation
-- **Performance Metrics:** Accuracy, Precision, Recall, F1-Score, ROC-AUC
+Numeric variables use median imputation. Logistic Regression additionally uses `StandardScaler`.
 
-### 3. Model Explainability (SHAP)
+### Models
 
-- **Global Explanations:** Feature importance ranking via mean absolute SHAP values
-- **Local Explanations:** Individual prediction breakdowns
-- **Key Drivers Identified:**
-  - Month-to-month contracts (primary driver)
-  - Fiber optic internet service
-  - Lack of TechSupport
-  - Shorter tenure customers
-  - Paperless billing
+1. **Majority-class baseline** — establishes the performance floor.
+2. **Logistic Regression** — interpretable linear baseline.
+3. **Random Forest** — nonlinear primary model with class-balanced training and ROC-AUC cross-validation tuning.
 
-### 4. Business Impact Quantification
+### Evaluation
 
-- **Risk Threshold:** Customers with churn probability > 0.7 classified as high-risk
-- **Revenue Aggregation:** Sums MonthlyCharges of high-risk cohort
-- **Output:** $11.3M at-risk revenue metric with executive summary
+The project reports:
+- Accuracy
+- Precision
+- Recall
+- F1
+- ROC-AUC
+- PR-AUC
+- Confusion matrix
 
-### 5. Persistent Metadata Handling
+Accuracy is not treated as the sole success criterion for a retention use case.
 
-All generated reports include author attribution:
-```python
-AUTHOR = "OGHENEOCHUKO EMMANUEL OGIDIAGBA"
-```
+## Threshold analysis
 
-Metadata persists across:
-- JSON metrics reports
-- SHAP summary reports
-- Business impact reports
-- Executive summaries
+The pipeline evaluates churn-probability thresholds:
 
----
+`0.30, 0.40, 0.50, 0.60, 0.70, 0.80`
 
-## Installation
+For each threshold it reports:
+- customers targeted;
+- target share;
+- monthly revenue exposure; and
+- annualized revenue exposure.
 
-### Prerequisites
+This makes threshold selection an explicit business-policy trade-off instead of an arbitrary fixed cutoff.
 
-- Python 3.8 or higher
-- pip package manager
+## Retention economics
 
-### Setup
+The scenario model uses explicit assumptions:
+
+- intervention cost: **$20 per targeted customer**;
+- intervention effectiveness: **10%, 20%, 30%** scenarios.
+
+For each threshold/scenario combination:
+
+`Expected retained monthly value = revenue exposure × assumed effectiveness`
+
+`Expected net monthly value = expected retained monthly value − intervention cost`
+
+These are **hypothetical scenarios**, not measured intervention outcomes.
+
+Revenue exposure is the sum of `MonthlyCharges` for customers above a selected probability threshold. It is **not** a claim that all exposed revenue will be lost.
+
+## Explainability
+
+The Random Forest is explained with genuine:
+
+`shap.TreeExplainer`
+
+SHAP is computed on held-out test data. One-hot encoded contributions are aggregated back to source variables for global interpretation.
+
+A local example is also generated to demonstrate how individual encoded features contributed to a single prediction.
+
+SHAP explains model behavior; it does not establish that a feature causes churn.
+
+## Outputs
+
+| Output | Purpose |
+|---|---|
+| `model_metrics.json` | Baseline/model comparison plus threshold and scenario tables |
+| `business_impact.json` | Revenue exposure and retention economics |
+| `shap_summary.json` | Global and local SHAP explanations |
+| `full_pipeline_report.json` | Consolidated analytical report |
+| `executive_summary.txt` | Executive-readable summary |
+| `churn_model.joblib` | Serialized model artifacts |
+
+## Run locally
 
 ```bash
 cd "Customer Churn Prediction Model"
-
-# Create virtual environment (optional but recommended)
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-```
-
----
-
-## Usage
-
-### Running the Full Pipeline
-
-```bash
-cd "Customer Churn Prediction Model"
+python -m pip install -r requirements.txt
+pytest -q tests/test_pipeline.py
 python src/pipeline.py
 ```
 
-The pipeline executes the following steps:
+## Interpretation cautions
 
-1. **Load Data** - Reads Churn_Dataset.csv (35,000 records)
-2. **Validate Data** - Schema checks, missing value detection
-3. **Anonymize** - Hash CustomerID for privacy
-4. **Preprocess** - Clean, encode, split train/test
-5. **Train Model** - Random Forest with hyperparameter tuning
-6. **Evaluate** - Compute accuracy, ROC-AUC, F1-score
-7. **Calculate Revenue** - Quantify at-risk revenue ($11.3M)
-8. **Generate SHAP** - Explain model predictions
-9. **Save Reports** - JSON outputs and executive summary
+This is a **portfolio-grade analytical prototype**, not a production deployment. It does not claim to provide:
+- model monitoring;
+- drift detection;
+- a model registry;
+- scheduled inference;
+- API serving; or
+- causal estimates of retention impact.
 
-### Running Tests
+## Author
 
-```bash
-# Run all tests
-pytest tests/test_pipeline.py -v
+**OGHENEOCHUKO EMMANUEL OGIDIAGBA**
 
-# Run specific test class
-pytest tests/test_pipeline.py::TestChurnClassifier -v
-
-# Run with coverage
-pytest tests/test_pipeline.py --cov=src
-```
-
----
-
-## Output Files
-
-After running the pipeline, the `outputs/` directory contains:
-
-| File | Description |
-|------|-------------|
-| `full_pipeline_report.json` | Complete pipeline results with metadata |
-| `model_metrics.json` | Model performance metrics |
-| `business_impact.json` | Revenue analysis and recommendations |
-| `shap_summary.json` | SHAP explainability report |
-| `churn_model.joblib` | Serialized trained model |
-| `executive_summary.txt` | Human-readable executive summary |
-
----
-
-## Key Metrics
-
-### Model Performance Targets
-
-| Metric | Target | Achievement |
-|--------|--------|-------------|
-| Accuracy | >= 80% | ✓ Achieved |
-| ROC-AUC | >= 0.75 | ✓ Achieved |
-| F1-Score | Strong | ✓ Achieved |
-
-### Business Impact
-
-| Metric | Value |
-|--------|-------|
-| At-Risk Revenue (Monthly) | $11,300,000 |
-| High-Risk Customers | Identified via probability threshold |
-| Risk Threshold | 0.7 (70% churn probability) |
-
----
-
-## Top Churn Drivers (SHAP Analysis)
-
-Based on SHAP value analysis, the primary factors driving customer churn are:
-
-1. **Contract Type** - Month-to-month contracts show highest churn propensity
-2. **Internet Service** - Fiber optic customers have elevated churn risk
-3. **Tech Support** - Absence of tech support increases churn likelihood
-4. **Tenure** - Shorter-tenure customers more likely to churn
-5. **Billing Method** - Paperless billing correlates with higher churn
-
----
-
-## Recommendations for Business Action
-
-1. **Retention Campaigns:** Target high-risk customers (probability > 0.7) with personalized offers
-2. **Contract Incentives:** Convert month-to-month customers to annual contracts
-3. **Service Enhancement:** Proactive tech support outreach for fiber optic customers
-4. **Early Intervention:** Engage customers within first 6 months of tenure
-5. **Billing Review:** Investigate friction points in paperless billing experience
-
----
-
-## Author Information
-
-**Name:** OGHENEOCHUKO EMMANUEL OGIDIAGBA  
-**Role:** Lead Data Scientist & Software Engineer  
-**Expertise:** 
-- User behavior analysis
-- Churn-related analysis
-- Friction point identification
-- Executive-ready visualizations
-- Data-driven decision-making
-- Cross-functional collaboration
-- Data privacy and quality standards
-
----
-
-## License
-
-This project is provided as a portfolio piece. All rights reserved.
-
----
-
-## Contact
-
-For questions or collaboration opportunities, please reach out through the portfolio contact channels.
-
----
-
-*This repository demonstrates production-ready data science practices including modular architecture, comprehensive testing, model explainability, and business impact quantification.*
+Data Science Portfolio — Customer Churn Prediction & Retention Economics
