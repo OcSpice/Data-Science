@@ -2,6 +2,7 @@
 
 from pathlib import Path
 from typing import Optional
+import re
 import pandas as pd
 
 
@@ -39,10 +40,19 @@ class DataLoader:
             raise ValueError("No data loaded. Call load() first.")
         return {
             "total_records": int(len(self.data)),
-            "sentiment_distribution": {str(k): int(v) for k,v in self.data["Sentiment"].value_counts().to_dict().items()},
+            "sentiment_distribution": {str(k): int(v) for k, v in self.data["Sentiment"].value_counts().to_dict().items()},
             "average_rating": float(self.data["Rating"].mean()),
             "categories": self.data["Category"].dropna().unique().tolist(),
         }
+
+    @staticmethod
+    def _normalize_template(text: str) -> str:
+        """Normalize superficial variation to expose repeated review templates."""
+        text = str(text).lower()
+        text = re.sub(r"https?://\S+|www\.\S+", " <url> ", text)
+        text = re.sub(r"\b\d+(?:\.\d+)?\b", " <num> ", text)
+        text = re.sub(r"[^a-z0-9<>\s]+", " ", text)
+        return re.sub(r"\s+", " ", text).strip()
 
     def get_duplicate_summary(self, text_column: str = "Review", label_column: str = "Sentiment") -> dict:
         if self.data is None:
@@ -55,11 +65,20 @@ class DataLoader:
         for _, group in self.data.loc[duplicate_mask].groupby(text_column, dropna=False):
             if group[label_column].nunique() > 1:
                 conflicting += 1
+
+        normalized = texts.map(self._normalize_template)
+        template_counts = normalized.value_counts()
+        repeated_template_rows = int(normalized[normalized.map(template_counts) > 1].size)
+        repeated_template_count = int((template_counts > 1).sum())
+
         return {
             "exact_duplicate_rows": duplicate_rows,
             "unique_duplicate_texts": unique_duplicate_texts,
-            "duplicate_row_pct": round(duplicate_rows/len(self.data)*100, 2),
+            "duplicate_row_pct": round(duplicate_rows / len(self.data) * 100, 2),
             "duplicate_texts_with_conflicting_labels": int(conflicting),
+            "normalized_repeated_template_rows": repeated_template_rows,
+            "normalized_repeated_template_count": repeated_template_count,
+            "normalized_repeated_template_row_pct": round(repeated_template_rows / len(self.data) * 100, 2),
         }
 
     def get_category_sentiment_summary(self) -> list:
