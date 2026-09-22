@@ -100,6 +100,7 @@ class HoltWintersModel:
         self.residuals: Optional[np.ndarray] = None
         self.params: Optional[HoltWintersParams] = None
         self._is_fitted = False
+        self.n_observations: Optional[int] = None
     
     def _initialize_components(self, y: np.ndarray) -> Tuple[float, float, np.ndarray]:
         """
@@ -285,6 +286,7 @@ class HoltWintersModel:
             season_length=m
         )
         
+        self.n_observations = n
         self._is_fitted = True
         logger.info(f"Holt-Winters model fitted with alpha={self.alpha:.4f}, "
                    f"beta={self.beta:.4f}, gamma={self.gamma:.4f}")
@@ -309,7 +311,7 @@ class HoltWintersModel:
         
         for h in range(1, steps + 1):
             # Get seasonal index for forecast horizon
-            s_idx = (h - 1) % m
+            # Continue the learned seasonal phase from the end of training.\n            # Using (h - 1) % m would reset the season at forecast step 1 and\n            # can shift the weekly pattern when the training length is not a\n            # multiple of the seasonal period.\n            s_idx = (self.n_observations + h - 1) % m
             
             if self.seasonal_type == 'add':
                 # Additive: F(t+h) = L(t) + h*T(t) + S(t-s+h)
