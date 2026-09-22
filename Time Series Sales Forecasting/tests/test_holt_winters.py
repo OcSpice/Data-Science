@@ -352,3 +352,53 @@ class TestIntegration:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
+
+
+class TestChronologicalPipelineBoundaries:
+    """Tests for the documented leakage-safe train/validation/test design."""
+
+    def test_documented_boundaries_do_not_overlap(self):
+        from pipeline import (
+            TRAIN_END,
+            VALIDATION_START,
+            VALIDATION_END,
+            TEST_START,
+            TEST_END,
+        )
+
+        assert TRAIN_END < VALIDATION_START
+        assert VALIDATION_END < TEST_START
+        assert TRAIN_END == pd.Timestamp("2025-11-05")
+        assert VALIDATION_START == pd.Timestamp("2025-11-06")
+        assert VALIDATION_END == pd.Timestamp("2025-12-03")
+        assert TEST_START == pd.Timestamp("2025-12-04")
+        assert TEST_END == pd.Timestamp("2025-12-31")
+
+    def test_split_train_validation_uses_documented_dates(self):
+        from pipeline import split_train_validation
+
+        dates = pd.date_range("2025-11-01", "2025-12-05", freq="D")
+        frame = pd.DataFrame({"date": dates, "sales": np.ones(len(dates))})
+
+        train, validation = split_train_validation(frame)
+
+        assert train["date"].max() == pd.Timestamp("2025-11-05")
+        assert validation["date"].min() == pd.Timestamp("2025-11-06")
+        assert validation["date"].max() == pd.Timestamp("2025-12-03")
+
+    def test_parameter_selection_returns_validation_optimum(self):
+        from pipeline import select_parameters
+
+        t = np.arange(120)
+        train = 100 + 0.2 * t + 10 * np.sin(2 * np.pi * t / 7)
+        validation_t = np.arange(14)
+        validation = 124 + 0.2 * validation_t + 10 * np.sin(
+            2 * np.pi * (120 + validation_t) / 7
+        )
+
+        params, table = select_parameters(train, validation)
+
+        assert set(params) == {"alpha", "beta", "gamma"}
+        assert len(table) == 5 * 4 * 4
+        assert table["MAPE"].is_monotonic_increasing
+        assert table.iloc[0]["MAPE"] <= table.iloc[-1]["MAPE"]
