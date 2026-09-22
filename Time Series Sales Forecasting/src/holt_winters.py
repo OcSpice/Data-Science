@@ -10,6 +10,7 @@ The implementation includes:
 - Additive and Multiplicative seasonal variants
 - Level, Trend, and Seasonal component initialization
 - Iterative parameter updates following the mathematical formulation
+- Damped-trend forecasting support
 - Forecasting with confidence intervals
 """
 
@@ -63,6 +64,10 @@ class HoltWintersModel:
         Trend smoothing parameter (0 < β < 1). Default is 0.1
     gamma : float, optional
         Seasonal smoothing parameter (0 < γ < 1). Default is 0.1
+    damping : float, optional
+        Trend damping factor in (0, 1]. A value of 1.0 gives the standard
+        Holt-Winters trend; values below 1.0 progressively damp the trend
+        contribution as the forecast horizon increases. Default is 1.0.
     """
     
     def __init__(
@@ -83,6 +88,7 @@ class HoltWintersModel:
             alpha: Level smoothing parameter
             beta: Trend smoothing parameter
             gamma: Seasonal smoothing parameter
+            damping: Trend damping factor in (0, 1]
         """
         if seasonal_type not in ['add', 'mul']:
             raise ValueError("seasonal_type must be 'add' or 'mul'")
@@ -372,12 +378,18 @@ class HoltWintersModel:
         param_grid: Optional[Dict[str, List[float]]] = None
     ) -> 'HoltWintersModel':
         """
-        Optimize smoothing parameters using grid search to minimize SSE.
-        
+        Legacy in-sample parameter optimizer.
+
+        This helper minimizes in-sample SSE and is retained only for
+        backwards compatibility. It is NOT used by the portfolio pipeline.
+        The portfolio workflow in pipeline.py uses a chronological
+        train/validation split and selects parameters by validation MAPE
+        before evaluating the held-out test period.
+
         Args:
             y: Time series data
             param_grid: Dictionary of parameter values to try
-            
+
         Returns:
             Self with optimized parameters
         """
@@ -385,7 +397,8 @@ class HoltWintersModel:
             param_grid = {
                 'alpha': [0.1, 0.2, 0.3, 0.5, 0.7],
                 'beta': [0.05, 0.1, 0.2, 0.3],
-                'gamma': [0.05, 0.1, 0.2, 0.3]
+                'gamma': [0.05, 0.1, 0.2, 0.3],
+                'damping': [0.7, 0.8, 0.9, 0.95, 1.0]
             }
         
         best_sse = float('inf')
@@ -394,6 +407,7 @@ class HoltWintersModel:
         for alpha in param_grid.get('alpha', [0.2]):
             for beta in param_grid.get('beta', [0.1]):
                 for gamma in param_grid.get('gamma', [0.1]):
+                for damping in param_grid.get('damping', [1.0]):
                     try:
                         # Create temporary model with these parameters
                         temp_model = HoltWintersModel(
@@ -401,7 +415,8 @@ class HoltWintersModel:
                             seasonal_type=self.seasonal_type,
                             alpha=alpha,
                             beta=beta,
-                            gamma=gamma
+                            gamma=gamma,
+                            damping=damping
                         )
                         temp_model.fit(y)
                         
@@ -410,7 +425,7 @@ class HoltWintersModel:
                         
                         if sse < best_sse:
                             best_sse = sse
-                            best_params = {'alpha': alpha, 'beta': beta, 'gamma': gamma}
+                            best_params = {'alpha': alpha, 'beta': beta, 'gamma': gamma, 'damping': damping}
                     
                     except Exception:
                         continue
@@ -419,6 +434,7 @@ class HoltWintersModel:
             self.alpha = best_params['alpha']
             self.beta = best_params['beta']
             self.gamma = best_params['gamma']
+            self.damping = best_params['damping']
             logger.info(f"Optimized parameters: {best_params}, SSE: {best_sse:.4f}")
         
         # Refit with optimized parameters
