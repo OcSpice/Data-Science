@@ -311,7 +311,11 @@ class HoltWintersModel:
         
         for h in range(1, steps + 1):
             # Get seasonal index for forecast horizon
-            # Continue the learned seasonal phase from the end of training.\n            # Using (h - 1) % m would reset the season at forecast step 1 and\n            # can shift the weekly pattern when the training length is not a\n            # multiple of the seasonal period.\n            s_idx = (self.n_observations + h - 1) % m
+            # Continue the learned seasonal phase from the end of training.
+            # Using (h - 1) % m would reset the season at forecast step 1 and
+            # can shift the weekly pattern when the training length is not a
+            # multiple of the seasonal period.
+            s_idx = (self.n_observations + h - 1) % m
             
             if self.seasonal_type == 'add':
                 # Additive: F(t+h) = L(t) + h*T(t) + S(t-s+h)
