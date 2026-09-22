@@ -417,9 +417,12 @@ class TestChronologicalPipelineBoundaries:
             gamma=0.3,
         )
         model.fit(y)
+        # Replace learned components with deterministic markers so the test
+        # verifies the seasonal index calculation rather than model fit quality.
+        model.level = 0.0
+        model.trend = 0.0
+        model.seasonal = np.arange(7, dtype=float)
         forecasts = model.predict(7)
 
         # 103 observations leaves the next observation at seasonal index 5.
-        expected_indices = [(103 + h - 1) % 7 for h in range(1, 8)]
-        assert expected_indices == [5, 6, 0, 1, 2, 3, 4]
-        assert np.argmax(forecasts) == 4
+        assert np.array_equal(forecasts, np.array([5, 6, 0, 1, 2, 3, 4], dtype=float))
