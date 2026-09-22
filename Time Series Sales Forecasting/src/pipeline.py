@@ -42,6 +42,7 @@ PARAM_GRID = {
     "alpha": [0.1, 0.2, 0.3, 0.5, 0.7],
     "beta": [0.0, 0.05, 0.1, 0.2, 0.3],
     "gamma": [0.05, 0.1, 0.2, 0.3],
+    "damping": [0.7, 0.8, 0.9, 0.95, 1.0],
 }
 
 
@@ -104,12 +105,14 @@ def select_parameters(
     for alpha in PARAM_GRID["alpha"]:
         for beta in PARAM_GRID["beta"]:
             for gamma in PARAM_GRID["gamma"]:
+                for damping in PARAM_GRID["damping"]:
                 model = HoltWintersModel(
                     season_length=season_length,
                     seasonal_type=seasonal_type,
                     alpha=alpha,
                     beta=beta,
                     gamma=gamma,
+                    damping=damping,
                 )
                 model.fit(train_sales)
                 forecast = np.maximum(model.predict(len(validation_sales)), 0)
@@ -132,6 +135,7 @@ def select_parameters(
         "alpha": float(best["alpha"]),
         "beta": float(best["beta"]),
         "gamma": float(best["gamma"]),
+        "damping": float(best["damping"]),
     }
     return params, results
 
