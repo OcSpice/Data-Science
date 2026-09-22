@@ -1,87 +1,98 @@
-"""
-NLP Sentiment Analysis and Customer Feedback Insight Engine
-Author: OGHENEOCHUKO EMMANUEL OGIDIAGBA
+"""Data loading and leakage-safe preparation for the Women's Clothing Reviews dataset."""
 
-This module handles data loading, schema validation, and text quality checks.
-"""
+from pathlib import Path
+import re
+from typing import Dict, Optional
 
 import pandas as pd
-import re
-from typing import Optional, Tuple, List
-from pathlib import Path
 
 
 class DataLoader:
-    """
-    Handles loading and validation of customer review datasets.
-    
-    Attributes:
-        file_path: Path to the CSV file
-        expected_columns: List of required column names
-    """
-    
-    EXPECTED_COLUMNS = [
-        'ReviewID', 'Product', 'Category', 'Source', 'Country',
-        'Rating', 'Sentiment', 'Review', 'WordCount', 'CharCount', 'Topic'
-    ]
-    
-    VALID_SENTIMENTS = {'Positive', 'Negative', 'Neutral'}
-    
+    """Load, validate, deduplicate, and label the project dataset."""
+
+    REQUIRED_COLUMNS = {
+        "Clothing ID", "Age", "Title", "Review Text", "Rating",
+        "Recommended IND", "Positive Feedback Count", "Division Name",
+        "Department Name", "Class Name",
+    }
+
+    SENTIMENT_MAP = {
+        1: "Negative", 2: "Negative",
+        3: "Neutral",
+        4: "Positive", 5: "Positive",
+    }
+
     def __init__(self, file_path: str):
         self.file_path = Path(file_path)
         self.data: Optional[pd.DataFrame] = None
-        
+        self.audit: Dict = {}
+
+    @staticmethod
+    def normalize_review(text: str) -> str:
+        """Normalize text only for duplicate detection; preserve original text separately."""
+        if not isinstance(text, str):
+            return ""
+        return re.sub(r"\s+", " ", text.strip().lower())
+
     def load(self) -> pd.DataFrame:
-        """
-        Load the CSV file into a pandas DataFrame.
-        
-        Returns:
-            pd.DataFrame: Loaded dataset
-            
-        Raises:
-            FileNotFoundError: If the file does not exist
-            ValueError: If schema validation fails
-        """
         if not self.file_path.exists():
             raise FileNotFoundError(f"Dataset not found at {self.file_path}")
-        
-        self.data = pd.read_csv(self.file_path)
-        self._validate_schema()
-        return self.data
-    
-    def _validate_schema(self) -> None:
-        """
-        Validate that the loaded data has expected columns and types.
-        
-        Raises:
-            ValueError: If schema validation fails
-        """
-        if self.data is None:
-            raise ValueError("No data loaded. Call load() first.")
-        
-        missing_cols = set(self.EXPECTED_COLUMNS) - set(self.data.columns)
-        if missing_cols:
-            raise ValueError(f"Missing required columns: {missing_cols}")
-        
-        invalid_sentiments = set(self.data['Sentiment'].unique()) - self.VALID_SENTIMENTS
-        if invalid_sentiments:
-            raise ValueError(f"Invalid sentiment values found: {invalid_sentiments}")
-        
-        print(f"Schema validation passed. {len(self.data)} records loaded.")
-    
-    def get_summary(self) -> dict:
-        """
-        Generate summary statistics for the loaded dataset.
-        
-        Returns:
-            dict: Summary statistics including record count, sentiment distribution
-        """
-        if self.data is None:
-            raise ValueError("No data loaded. Call load() first.")
-        
-        return {
-            'total_records': len(self.data),
-            'sentiment_distribution': self.data['Sentiment'].value_counts().to_dict(),
-            'average_rating': float(self.data['Rating'].mean()),
-            'categories': self.data['Category'].unique().tolist()
+
+        df = pd.read_csv(self.file_path)
+        self._validate_schema(df)
+
+        raw_rows = len(df)
+        missing_reviews = int(df["Review Text"].isna().sum())
+
+        df = df.loc[df["Review Text"].notna()].copy()
+        df["Review Text"] = df["Review Text"].astype(str).str.strip()
+        df = df.loc[df["Review Text"].ne("")].copy()
+
+        df["normalized_review"] = df["Review Text"].map(self.normalize_review)
+        before_dedup = len(df)
+        df = df.drop_duplicates(subset="normalized_review", keep="first").copy()
+        duplicate_rows_removed = before_dedup - len(df)
+
+        df["Sentiment"] = df["Rating"].map(self.SENTIMENT_MAP)
+        if df["Sentiment"].isna().any():
+            raise ValueError("Unexpected rating values found while creating sentiment labels.")
+
+        # Keep the raw review and a modeling text column. Title is supplementary context,
+        # while normalized_review is retained only for audit/deduplication checks.
+        df["Text"] = df["Review Text"]
+        title_mask = df["Title"].notna() & df["Title"].astype(str).str.strip().ne("")
+        df.loc[title_mask, "Text"] = (
+            df.loc[title_mask, "Title"].astype(str).str.strip()
+            + ". "
+            + df.loc[title_mask, "Review Text"].astype(str).str.strip()
+        )
+
+        self.data = df.reset_index(drop=True)
+        self.audit = {
+            "raw_rows": raw_rows,
+            "missing_review_text": missing_reviews,
+            "rows_after_missing_text_removal": before_dedup,
+            "duplicate_review_rows_removed": duplicate_rows_removed,
+            "final_rows": len(self.data),
+            "sentiment_distribution": self.data["Sentiment"].value_counts().to_dict(),
+            "rating_distribution": self.data["Rating"].value_counts().sort_index().to_dict(),
         }
+        return self.data
+
+    def _validate_schema(self, df: pd.DataFrame) -> None:
+        missing = self.REQUIRED_COLUMNS - set(df.columns)
+        if missing:
+            raise ValueError(f"Missing required columns: {sorted(missing)}")
+
+        ratings = set(pd.to_numeric(df["Rating"], errors="coerce").dropna().astype(int).unique())
+        invalid = ratings - set(self.SENTIMENT_MAP)
+        if invalid:
+            raise ValueError(f"Unsupported rating values: {sorted(invalid)}")
+
+    def get_summary(self) -> dict:
+        if self.data is None:
+            raise ValueError("No data loaded. Call load() first.")
+        summary = dict(self.audit)
+        summary["average_rating"] = float(self.data["Rating"].mean())
+        summary["unique_clothing_ids"] = int(self.data["Clothing ID"].nunique())
+        return summary
