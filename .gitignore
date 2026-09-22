@@ -36,8 +36,10 @@ Customer Churn Prediction Model/outputs/*.json
 Customer Churn Prediction Model/outputs/*.txt
 Customer Churn Prediction Model/outputs/*.joblib
 
-
 # Time Series Sales Forecasting generated reports
 Time Series Sales Forecasting/reports/*.csv
 Time Series Sales Forecasting/reports/*.json
 Time Series Sales Forecasting/reports/*.txt
+
+# NLP Sentiment Analysis generated reports
+NLP Sentiment Analysis/reports/*.json
