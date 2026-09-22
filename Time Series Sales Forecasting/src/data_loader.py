@@ -169,9 +169,11 @@ class DataLoader:
             merged = pd.concat([merged, val_df], ignore_index=True)
             logger.info(f"Included {len(val_df)} validation records")
         
-        # Ensure date column is datetime
+        # Normalize date types before every date-based merge.
         if 'date' in merged.columns:
             merged['date'] = pd.to_datetime(merged['date'])
+        if 'date' in self.calendar_data.columns:
+            self.calendar_data['date'] = pd.to_datetime(self.calendar_data['date'])
         
         # Merge with calendar data on date
         calendar_cols = ['date', 'd', 'wm_yr_wk', 'weekday', 'wday', 'month', 'year',
