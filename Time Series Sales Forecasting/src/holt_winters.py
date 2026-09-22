@@ -205,7 +205,7 @@ class HoltWintersModel:
         # Handle NaN values
         if np.any(np.isnan(y)):
             logger.warning("NaN values detected in time series. Forward filling.")
-            y = pd.Series(y).fillna(method='ffill').fillna(method='bfill').values
+            y = pd.Series(y).ffill().bfill().values
         
         # Initialize components
         self.level, self.trend, self.seasonal = self._initialize_components(y)
