@@ -1,183 +1,125 @@
 # NLP Sentiment Analysis and Customer Feedback Insight Engine
 
 **Author:** OGHENEOCHUKU EMMANUEL OGIDIAGBA  
-**Portfolio Category:** Data Science  
-**Dataset Size:** 12,000 Customer Reviews
+**Portfolio Category:** Data Science
 
 ## Project Overview
+This project builds a leakage-aware NLP pipeline for classifying sentiment in customer reviews from the **Women's Clothing E-Commerce Reviews** dataset.
 
-This repository contains a production-ready Python pipeline for sentiment analysis and customer feedback insight extraction. The system processes unstructured text data from customer reviews to deliver actionable business insights and product improvement strategies.
+The workflow covers raw-data auditing, missing-review removal, duplicate-review detection, rating-based proxy labels, deterministic preprocessing, stratified splitting, training-only TF-IDF, four-model comparison, classification metrics, and descriptive negative-review theme analysis.
 
-### Key Features
+## Dataset and Label Methodology
+The raw dataset contains **23,486 rows** and 11 columns.
 
-- **Data Quality Engine:** Clean data loading with schema validation, text noise removal (HTML tags, special characters, extra whitespace), and PII anonymization
-- **Custom NLP Pipeline:** Tokenization, stopword removal, lemmatization, and TF-IDF vectorization
-- **Sentiment Classification:** SVM-based model for accurate sentiment prediction (Positive, Negative, Neutral)
-- **Root-Cause Analysis:** Automated keyword extraction identifying why customers are unhappy
-- **Automated Reporting:** Insight-driven visualizations and comprehensive JSON/text reports
+Sentiment is derived from rating:
 
-## Key Business Discovery
+| Rating | Proxy sentiment |
+|---|---|
+| 1–2 | Negative |
+| 3 | Neutral |
+| 4–5 | Positive |
 
-**Primary Finding:** "Customer support" is the most frequently occurring keyword phrase in negative reviews, providing a direct, data-backed recommendation for business improvement.
+This is a **proxy-label methodology**. The classes represent rating-derived sentiment rather than independently human-annotated sentiment.
 
-## Directory Structure
+### Data-quality audit
+- **845** missing `Review Text` values
+- **0** exact duplicate rows
+- **13** repeated non-empty review texts after normalization
+- **22,634** unique reviews remaining for modeling
 
-```
+| Sentiment | Reviews | Approx. share |
+|---|---:|---:|
+| Negative | 2,369 | 10.5% |
+| Neutral | 2,823 | 12.5% |
+| Positive | 17,442 | 77.1% |
+
+Because of this imbalance, **Macro-F1** is the primary comparison metric.
+
+## Leakage Controls
+The primary classifier is text-only. `Rating` is used to construct the target, while `Recommended IND` and `Positive Feedback Count` are excluded because they can encode post-review or target-related information. Demographic and product metadata are also excluded from the primary text experiment.
+
+The split is stratified with random state 42. TF-IDF is fitted only on training text and then applied to the test set.
+
+## Text Processing
+- removes HTML and URLs
+- anonymizes emails and phone numbers
+- lowercases text
+- removes non-alphabetic noise while retaining apostrophes
+- normalizes whitespace
+- combines review title and review text when a title exists
+
+No NLTK download step is required by the rebuilt pipeline.
+
+## Model Comparison
+Models evaluated:
+- Majority-class baseline
+- Multinomial Naive Bayes
+- Logistic Regression with balanced class weights
+- Linear SVM with balanced class weights
+
+| Model | Accuracy | Macro-F1 | Macro Precision | Macro Recall | ROC-AUC |
+|---|---:|---:|---:|---:|---:|
+| Majority baseline | 77.05% | 0.2901 | 0.2568 | 0.3333 | — |
+| Naive Bayes | 82.28% | 0.5658 | 0.6604 | 0.5269 | 0.9035 |
+| Logistic Regression | 78.73% | **0.6119** | 0.5943 | **0.6425** | 0.8913 |
+| Linear SVM | 80.85% | 0.6011 | 0.6014 | 0.6008 | 0.8826 |
+
+The majority baseline is a reference point and is not treated as a ranking model for ROC/PR-AUC. Accuracy is not interpreted in isolation because of class imbalance.
+
+## Descriptive Customer-Feedback Themes
+Recurring terms in negative reviews are extracted using TF-IDF. Observed high-weight terms include **dress, like, fabric, fit, size, small, material, quality, color,** and **shirt**.
+
+These are **descriptive textual themes**, not established causal root causes. Word frequency or TF-IDF association alone cannot establish causality.
+
+## Project Structure
 NLP Sentiment Analysis/
 ├── src/
-│   ├── __init__.py
-│   ├── main_pipeline.py          # Main orchestration module
-│   ├── data/
-│   │   ├── __init__.py
-│   │   └── data_loader.py        # Data loading and validation
-│   ├── preprocessing/
-│   │   ├── __init__.py
-│   │   └── text_preprocessor.py  # Text cleaning and PII anonymization
-│   ├── models/
-│   │   ├── __init__.py
-│   │   ├── tfidf_vectorizer.py   # Custom TF-IDF implementation
-│   │   └── sentiment_classifier.py # Sentiment classification model
-│   ├── insights/
-│   │   ├── __init__.py
-│   │   ├── root_cause_analyzer.py # Keyword extraction and root-cause analysis
-│   │   └── report_generator.py   # Automated report generation
-│   └── visualization/
-│       ├── __init__.py
-│       └── plot_generator.py     # Visualization generation
-├── tests/
-│   ├── __init__.py
-│   └── test_pipeline.py          # Unit tests for all components
-├── reports/                       # Generated reports and visualizations
-├── configs/                       # Configuration files
-├── Customer_Reviews_Dataset.csv   # Input dataset (12,000 reviews)
-├── README.md                      # This file
-└── requirements.txt               # Python dependencies
-```
+│   ├── main_pipeline.py
+│   ├── data/data_loader.py
+│   ├── preprocessing/text_preprocessor.py
+│   ├── models/tfidf_vectorizer.py
+│   ├── models/sentiment_classifier.py
+│   └── analysis/theme_analyzer.py
+├── tests/test_pipeline.py
+├── data/Womens Clothing E-Commerce Reviews.csv
+├── reports/
+├── README.md
+└── requirements.txt
 
-## Installation
+## Running the Project
+From the project directory:
 
-### Prerequisites
+    python src/main_pipeline.py
 
-- Python 3.8 or higher
-- pip package manager
+Run tests with:
 
-### Install Dependencies
+    pytest tests/test_pipeline.py -v
 
-```bash
-pip install -r requirements.txt
-```
-
-## Usage
-
-### Run Complete Pipeline
-
-```bash
-cd "NLP Sentiment Analysis"
-python src/main_pipeline.py
-```
-
-### Programmatic Usage
-
-```python
-from src.main_pipeline import SentimentAnalysisPipeline
-
-# Initialize pipeline
-pipeline = SentimentAnalysisPipeline(
-    data_path='Customer_Reviews_Dataset.csv',
-    output_dir='reports'
-)
-
-# Execute full analysis
-results = pipeline.run(generate_reports=True)
-
-# Predict sentiment for new reviews
-new_reviews = ["Great product!", "Terrible service"]
-predictions = pipeline.predict_sentiment(new_reviews)
-print(predictions)
-```
-
-### Run Unit Tests
-
-```bash
-pytest tests/test_pipeline.py -v
-```
-
-## Output Files
-
-After running the pipeline, the following outputs are generated in the `reports/` directory:
-
-1. **sentiment_distribution.png** - Bar chart showing sentiment breakdown
-2. **negative_reviews_wordcloud.png** - Word cloud of negative review terms
-3. **top_root_causes.png** - Top 10 keywords driving negative sentiment
-4. **sentiment_analysis_report_*.json** - Comprehensive JSON report with all metrics
-5. **sentiment_analysis_summary_*.txt** - Human-readable text summary
-6. **pipeline_metadata.json** - Persistent metadata with author attribution
-
-## Metrics and Results
-
-### Dataset Statistics
-- **Total Reviews:** 12,000
-- **Sentiment Categories:** Positive, Negative, Neutral
-- **Product Categories:** Multiple (Analytics, Integration, HR Tech, FinTech, etc.)
-
-### Model Performance
-- **Algorithm:** Support Vector Machine (SVM) with balanced class weights
-- **Features:** TF-IDF with up to 3,000 features and bigrams
-- **Evaluation:** Train/test split with stratification
-
-### Root-Cause Analysis
-The pipeline automatically identifies the top keywords and phrases associated with negative sentiment. The primary discovery is that **"customer support"** related issues are the leading cause of customer dissatisfaction.
-
-## Business Recommendations
-
-Based on the analysis:
-
-1. **Expand customer support team capacity** to reduce response times
-2. **Implement faster SLAs** for support ticket resolution
-3. **Create self-service knowledge base** for common issues
-4. **Establish proactive outreach** for customers with unresolved tickets
-5. **Monitor support-related keywords** in real-time dashboards
+The pipeline writes evaluation output to `reports/model_evaluation.json`.
 
 ## Technical Highlights
+- Python, Pandas, NumPy and scikit-learn
+- TF-IDF unigram/bigram features
+- Sparse-matrix processing
+- Stratified evaluation
+- Multiclass classification
+- Macro-F1 evaluation
+- One-vs-rest ROC-AUC and PR-AUC
+- Descriptive NLP theme extraction
+- Unit testing
 
-### Data Processing
-- Schema validation ensures data integrity
-- HTML tag removal and text normalization
-- PII detection and anonymization (emails, phone numbers, names)
+## Limitations
+1. Sentiment labels are derived from ratings rather than human sentiment annotations.
+2. The positive class is substantially larger than the negative and neutral classes.
+3. Review-level duplicate removal does not guarantee semantic near-duplicate removal.
+4. TF-IDF themes indicate recurring language, not causal drivers.
+5. Evaluation uses a single stratified holdout split; cross-validation could provide additional robustness.
+6. Results should not be generalized beyond this dataset and collection context without further validation.
 
-### NLP Pipeline
-- NLTK-based tokenization and lemmatization
-- Custom stopword filtering
-- TF-IDF vectorization with configurable n-grams
+## Portfolio Value
+This project demonstrates an end-to-end NLP workflow emphasizing **data quality, leakage prevention, class-imbalance awareness, model comparison, reproducibility, and evidence-based interpretation** rather than presenting a single accuracy number.
 
-### Machine Learning
-- SVM classifier with balanced class weights
-- Stratified train/test splitting
-- Comprehensive evaluation metrics
+## Author
+**OGHENEOCHUKU EMMANUEL OGIDIAGBA**
 
-### Reporting
-- Author metadata persists across all generated files
-- JSON reports for programmatic access
-- Visual summaries for stakeholder presentations
-
-## Author Information
-
-**Name:** OGHENEOCHUKU EMMANUEL OGIDIAGBA  
-**Role:** Senior Data Scientist / Software Engineer  
-**Portfolio Track:** Data Science (with strong Data Analysis foundations)
-
-This project demonstrates expertise in:
-- Natural Language Processing (NLP)
-- Text pipeline construction
-- Automated root-cause extraction
-- Translating unstructured data into business insights
-- Building robust, reproducible data pipelines
-
-## License
-
-This project is part of a professional portfolio. All rights reserved.
-
----
-
-*Generated by the NLP Sentiment Analysis and Customer Feedback Insight Engine*  
-*Author: OGHENEOCHUKU EMMANUEL OGIDIAGBA*
+Data Science Portfolio
