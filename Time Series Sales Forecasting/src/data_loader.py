@@ -203,7 +203,7 @@ class DataLoader:
         # Handle missing sell_price by forward filling within each item-store group
         merged = merged.sort_values(['item_id', 'store_id', 'date'])
         merged['sell_price'] = merged.groupby(['item_id', 'store_id'])['sell_price'].transform(
-            lambda x: x.fillna(method='ffill').fillna(method='bfill')
+            lambda x: x.ffill().bfill()
         )
         
         # Fill any remaining NaN values
