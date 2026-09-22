@@ -128,6 +128,8 @@ SHAP explains model behavior; it does not establish that a feature causes churn.
 
 ## Outputs
 
+The pipeline generates the following files in the local `outputs/` directory:
+
 | Output | Purpose |
 |---|---|
 | `model_metrics.json` | Baseline/model comparison plus threshold and scenario tables |
@@ -136,6 +138,8 @@ SHAP explains model behavior; it does not establish that a feature causes churn.
 | `full_pipeline_report.json` | Consolidated analytical report |
 | `executive_summary.txt` | Executive-readable summary |
 | `churn_model.joblib` | Serialized model artifacts |
+
+These generated artifacts are intentionally excluded from source control to prevent stale model files and environment-specific binaries from becoming the repository source of truth. GitHub Actions generates and uploads the current six-file validation artifact on successful runs.
 
 ## Run locally
 
