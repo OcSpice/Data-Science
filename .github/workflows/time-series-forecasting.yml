@@ -1,0 +1,48 @@
+name: Time Series Forecasting Validation
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "Time Series Sales Forecasting/**"
+      - ".github/workflows/time-series-forecasting.yml"
+  pull_request:
+    paths:
+      - "Time Series Sales Forecasting/**"
+      - ".github/workflows/time-series-forecasting.yml"
+
+jobs:
+  validate-forecasting:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Time Series Sales Forecasting
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run tests
+        run: pytest tests/test_holt_winters.py -v
+
+      - name: Run full forecasting pipeline
+        run: python src/pipeline.py
+
+      - name: Upload forecasting outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: time-series-forecasting-validation-outputs
+          path: |
+            Time Series Sales Forecasting/reports/forecast_predictions.csv
+            Time Series Sales Forecasting/reports/parameter_search.csv
+            Time Series Sales Forecasting/reports/metrics.json
+            Time Series Sales Forecasting/reports/model_parameters.json
+            Time Series Sales Forecasting/reports/executive_summary.txt
