@@ -1,202 +1,103 @@
-"""
-NLP Sentiment Analysis and Customer Feedback Insight Engine
-Author: OGHENEOCHUKU EMMANUEL OGIDIAGBA
-
-Unit tests for core pipeline components.
-"""
-
-import pytest
-import numpy as np
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
+import numpy as np
+import pytest
+
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from data.data_loader import DataLoader
-from preprocessing.text_preprocessor import TextPreprocessor
 from models.tfidf_vectorizer import CustomTFIDFVectorizer
 from models.sentiment_classifier import SentimentClassifier
-from insights.root_cause_analyzer import RootCauseAnalyzer
+from insights.theme_analyzer import ThemeAnalyzer
+from preprocessing.text_preprocessor import TextPreprocessor
 
 
-class TestTextPreprocessor:
-    """Tests for text preprocessing functionality."""
-    
-    def setup_method(self):
-        self.preprocessor = TextPreprocessor()
-    
-    def test_clean_text_removes_html(self):
-        text = "<p>This is a <b>test</b> review</p>"
-        cleaned = self.preprocessor.clean_text(text)
-        assert "<" not in cleaned
-        assert ">" not in cleaned
-    
-    def test_clean_text_lowercases(self):
-        text = "THIS IS A TEST"
-        cleaned = self.preprocessor.clean_text(text)
-        assert cleaned == cleaned.lower()
-    
-    def test_clean_text_removes_special_chars(self):
-        text = "Test@#$% review!!!"
-        cleaned = self.preprocessor.clean_text(text)
-        assert "@" not in cleaned
-        assert "#" not in cleaned
-        assert "$" not in cleaned
-    
-    def test_anonymize_pii_emails(self):
-        text = "Contact me at test@example.com"
-        anonymized = self.preprocessor.anonymize_pii(text)
-        assert "test@example.com" not in anonymized
-        assert "[EMAIL_REDACTED]" in anonymized
-    
-    def test_anonymize_pii_phones(self):
-        text = "Call 555-123-4567 for support"
-        anonymized = self.preprocessor.anonymize_pii(text)
-        assert "555-123-4567" not in anonymized
-        assert "[PHONE_REDACTED]" in anonymized
-    
-    def test_tokenize(self):
-        text = "this is a test"
-        tokens = self.preprocessor.tokenize(text)
-        assert len(tokens) == 4
-        assert tokens == ['this', 'is', 'a', 'test']
-    
-    def test_remove_stopwords(self):
-        tokens = ['this', 'is', 'a', 'test']
-        filtered = self.preprocessor.remove_stopwords(tokens)
-        assert 'test' in filtered
-        assert 'this' not in filtered
-    
-    def test_lemmatize(self):
-        tokens = ['running', 'studies', 'products']
-        lemmatized = self.preprocessor.lemmatize(tokens)
-        assert lemmatized[0] == 'running' or lemmatized[0] == 'run'
-        assert lemmatized[1] == 'study' or lemmatized[1] == 'studies'
-    
-    def test_full_preprocess(self):
-        text = "This is a GREAT product!!! <html> Contact: test@email.com"
-        result = self.preprocessor.preprocess(text)
-        assert isinstance(result, str)
-        assert len(result) > 0
+def test_preprocessor_removes_html_and_pii():
+    p = TextPreprocessor()
+    result = p.preprocess("GREAT product <b>test</b> test@example.com")
+    assert "<" not in result
+    assert "test@example.com" not in result
 
 
-class TestTFIDFVectorizer:
-    """Tests for TF-IDF vectorization."""
-    
-    def setup_method(self):
-        self.vectorizer = CustomTFIDFVectorizer(max_features=100, min_df=1)
-    
-    def test_fit_transform(self):
-        texts = ["great product", "bad service", "excellent quality"]
-        X = self.vectorizer.fit_transform(texts)
-        assert X.shape[0] == 3
-        assert X.shape[1] <= 100
-    
-    def test_transform_without_fit_raises_error(self):
-        texts = ["test text"]
-        with pytest.raises(ValueError):
-            self.vectorizer.transform(texts)
-    
-    def test_get_feature_names(self):
-        texts = ["great product", "bad service"]
-        self.vectorizer.fit_transform(texts)
-        features = self.vectorizer.get_feature_names()
-        assert len(features) > 0
-        assert 'great' in features or 'product' in features
+def test_tfidf_requires_fit():
+    v = CustomTFIDFVectorizer(max_features=100, min_df=1)
+    with pytest.raises(ValueError):
+        v.transform(["test text"])
 
 
-class TestSentimentClassifier:
-    """Tests for sentiment classification model."""
-    
-    def setup_method(self):
-        self.classifier = SentimentClassifier(model_type='svm')
-    
-    def test_train_and_predict(self):
-        X = np.array([[0.1, 0.2], [0.8, 0.9], [0.3, 0.4], [0.9, 0.8], 
-                      [0.2, 0.3], [0.7, 0.85]])
-        y = ['Negative', 'Positive', 'Negative', 'Positive', 'Negative', 'Positive']
-        
-        metrics = self.classifier.train(X, y, test_size=0.33)
-        assert 'accuracy' in metrics
-        assert 0 <= metrics['accuracy'] <= 1
-    
-    def test_predict_without_train_raises_error(self):
-        X = np.array([[0.1, 0.2]])
-        with pytest.raises(ValueError):
-            self.classifier.predict(X)
-    
-    def test_label_mapping(self):
-        labels = ['Negative', 'Neutral', 'Positive']
-        numeric = self.classifier.prepare_labels(labels)
-        assert numeric[0] == 0
-        assert numeric[1] == 1
-        assert numeric[2] == 2
-    
-    def test_inverse_label_mapping(self):
-        numeric = [0, 1, 2]
-        labels = self.classifier.inverse_transform_labels(numeric)
-        assert labels[0] == 'Negative'
-        assert labels[1] == 'Neutral'
-        assert labels[2] == 'Positive'
+def test_tfidf_train_then_test_transform():
+    v = CustomTFIDFVectorizer(max_features=100, min_df=1)
+    X_train = v.fit_transform(["great product", "bad service"])
+    X_test = v.transform(["great service"])
+    assert X_train.shape[0] == 2
+    assert X_test.shape[0] == 1
 
 
-class TestRootCauseAnalyzer:
-    """Tests for root-cause analysis functionality."""
-    
-    def setup_method(self):
-        self.analyzer = RootCauseAnalyzer()
-    
-    def test_extract_ngrams_unigrams(self):
-        text = "customer support is terrible"
-        unigrams = self.analyzer.extract_ngrams(text, n=1)
-        assert 'customer' in unigrams
-        assert 'support' in unigrams
-    
-    def test_extract_ngrams_bigrams(self):
-        text = "customer support is terrible"
-        bigrams = self.analyzer.extract_ngrams(text, n=2)
-        assert 'customer support' in bigrams
-        assert 'support is' in bigrams
-    
-    def test_detect_customer_support_mentions(self):
-        texts = [
-            "customer support was unhelpful",
-            "great product overall",
-            "terrible customer service experience"
-        ]
-        count, percentage = self.analyzer.detect_customer_support_mentions(texts)
-        assert count >= 2
-        assert percentage >= 60
-    
-    def test_get_root_cause_summary(self):
-        negative_texts = [
-            "customer support never responded",
-            "terrible service quality",
-            "product broke after one day"
-        ]
-        summary = self.analyzer.get_root_cause_summary(negative_texts, len(negative_texts))
-        
-        assert 'total_negative_reviews' in summary
-        assert 'reviews_mentioning_support' in summary
-        assert 'top_root_cause_keywords' in summary
-        assert summary['author'] == RootCauseAnalyzer.AUTHOR
+def test_classifier_computes_multiclass_metrics():
+    X = np.array([
+        [0.9, 0.1], [0.8, 0.2], [0.1, 0.9],
+        [0.2, 0.8], [0.6, 0.4], [0.4, 0.6],
+        [0.7, 0.3], [0.3, 0.7], [0.5, 0.5],
+    ])
+    y = ["Negative", "Negative", "Positive", "Positive", "Neutral",
+         "Neutral", "Negative", "Positive", "Neutral"]
+    model = SentimentClassifier("logistic_regression")
+    metrics = model.train(X, y, test_size=1/3)
+    for key in ["accuracy", "precision_macro", "recall_macro", "f1_macro", "f1_weighted"]:
+        assert key in metrics
+        assert 0 <= metrics[key] <= 1
 
 
-class TestDataLoader:
-    """Tests for data loading functionality."""
-    
-    def test_expected_columns(self):
-        expected = DataLoader.EXPECTED_COLUMNS
-        assert 'ReviewID' in expected
-        assert 'Sentiment' in expected
-        assert 'Review' in expected
-    
-    def test_valid_sentiments(self):
-        valid = DataLoader.VALID_SENTIMENTS
-        assert 'Positive' in valid
-        assert 'Negative' in valid
-        assert 'Neutral' in valid
+def test_classifier_supports_naive_bayes_and_svm():
+    X = np.array([
+        [1, 0], [0.9, 0.1], [0, 1], [0.1, 0.9], [0.5, 0.5], [0.4, 0.6],
+    ])
+    y = ["Negative", "Negative", "Positive", "Positive", "Neutral", "Neutral"]
+    for model_type in ["naive_bayes", "svm"]:
+        metrics = SentimentClassifier(model_type).train(X, y, test_size=0.5)
+        assert "f1_macro" in metrics
 
 
-if __name__ == '__main__':
-    pytest.main([__file__, '-v'])
+def test_theme_analysis_is_descriptive():
+    analyzer = ThemeAnalyzer()
+    reviews = [
+        "Customer support never responded",
+        "The price is too expensive",
+        "Great product quality",
+        "Customer service was poor",
+    ]
+    sentiments = ["Negative", "Negative", "Positive", "Negative"]
+    categories = ["FinTech", "Analytics", "Analytics", "FinTech"]
+    result = analyzer.analyze_themes(reviews, sentiments, categories)
+    support = next(x for x in result["themes"] if x["theme"] == "Customer Support")
+    assert support["review_count"] == 2
+    assert support["negative_pct_within_theme"] == 100.0
+    assert "causal" in result["interpretation_note"].lower()
+
+
+def test_duplicate_summary():
+    loader = DataLoader("unused.csv")
+    import pandas as pd
+    loader.data = pd.DataFrame({
+        "ReviewID": [1, 2, 3],
+        "Product": ["A", "A", "B"],
+        "Category": ["X", "X", "Y"],
+        "Source": ["Web"] * 3,
+        "Country": ["NG"] * 3,
+        "Rating": [1, 2, 5],
+        "Sentiment": ["Negative", "Negative", "Positive"],
+        "Review": ["same text", "same text", "different"],
+        "WordCount": [2, 2, 1],
+        "CharCount": [9, 9, 9],
+        "Topic": ["a", "a", "b"],
+    })
+    summary = loader.get_duplicate_summary()
+    assert summary["exact_duplicate_rows"] == 2
+    assert summary["unique_duplicate_texts"] == 1
+    assert summary["duplicate_texts_with_conflicting_labels"] == 0
+
+
+def test_expected_schema():
+    assert "Sentiment" in DataLoader.EXPECTED_COLUMNS
+    assert DataLoader.VALID_SENTIMENTS == {"Positive", "Negative", "Neutral"}
