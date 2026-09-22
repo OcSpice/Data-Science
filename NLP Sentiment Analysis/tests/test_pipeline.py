@@ -13,6 +13,7 @@ from data.data_loader import DataLoader
 from preprocessing.text_preprocessor import TextPreprocessor
 from models.tfidf_vectorizer import CustomTFIDFVectorizer
 from models.sentiment_classifier import SentimentClassifier, LABELS
+from analysis.theme_analyzer import FeedbackThemeAnalyzer
 
 
 class TestTextPreprocessor:
@@ -125,6 +126,20 @@ class TestDataLoader:
         assert result.iloc[0]["Sentiment"] == "Positive"
         assert loader.get_summary()["missing_review_text"] == 1
         assert loader.get_summary()["duplicate_review_rows_removed"] == 1
+
+
+class TestFeedbackThemeAnalyzer:
+    def test_negative_theme_analysis_is_descriptive(self):
+        analyzer = FeedbackThemeAnalyzer(min_df=1)
+        result = analyzer.analyze(
+            ["bad fit and small size", "poor fabric quality", "great fit"],
+            ["Negative", "Negative", "Positive"],
+            top_n=5,
+        )
+        assert result["negative_review_count"] == 2
+        assert result["top_negative_terms"]
+        assert all("term" in item and "mean_tfidf" in item
+                   for item in result["top_negative_terms"])
 
 
 if __name__ == "__main__":
