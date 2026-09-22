@@ -134,7 +134,12 @@ def main():
     results = pipeline.run(generate_reports=True)
     print("\nModel comparison:")
     for name, metrics in results["model_comparison"].items():
-        print(f"- {name}: Macro-F1={metrics['f1_macro']:.3f}")
+        print(f"- {name}: Accuracy={metrics['accuracy']:.3f}, Macro-F1={metrics['f1_macro']:.3f}")
+    print(f"\nSentiment distribution: {results['sentiment_summary']['sentiment_distribution']}")
+    print(f"Exact duplicate diagnostics: {results['data_quality']['duplicate_summary']}")
+    print("Top negative-review phrases:")
+    for phrase, count in results["theme_analysis"]["top_negative_phrases"][:10]:
+        print(f"- {phrase}: {count}")
     return results
 
 
