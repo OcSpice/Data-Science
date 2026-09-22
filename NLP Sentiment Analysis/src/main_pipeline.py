@@ -128,7 +128,7 @@ class SentimentAnalysisPipeline:
 def main():
     current_dir = Path(__file__).parent.parent
     pipeline = SentimentAnalysisPipeline(
-        data_path=str(current_dir / "Customer_Reviews_Dataset.csv"),
+        data_path=str(current_dir / "data" / "Customer_Feedback_Dataset.csv"),
         output_dir=str(current_dir / "reports"),
     )
     results = pipeline.run(generate_reports=True)
