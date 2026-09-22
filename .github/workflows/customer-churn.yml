@@ -4,9 +4,11 @@ on:
   push:
     paths:
       - "Customer Churn Prediction Model/**"
+      - ".github/workflows/customer-churn.yml"
   pull_request:
     paths:
       - "Customer Churn Prediction Model/**"
+      - ".github/workflows/customer-churn.yml"
 
 jobs:
   test-churn-project:
