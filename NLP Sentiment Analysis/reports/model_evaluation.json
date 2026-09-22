@@ -1,0 +1,102 @@
+{
+  "dataset_audit": {
+    "raw_rows": 23486,
+    "missing_review_text": 845,
+    "rows_after_missing_text_removal": 22641,
+    "duplicate_review_rows_removed": 7,
+    "final_rows": 22634,
+    "sentiment_distribution": {
+      "Positive": 17442,
+      "Neutral": 2823,
+      "Negative": 2369
+    },
+    "rating_distribution": {
+      "1": 821,
+      "2": 1548,
+      "3": 2823,
+      "4": 4908,
+      "5": 12534
+    },
+    "average_rating": 4.183440841212335,
+    "unique_clothing_ids": 1177
+  },
+  "theme_analysis": {
+    "negative_review_count": 2369,
+    "top_negative_terms": [
+      {"term": "dress", "mean_tfidf": 0.08175869628966093},
+      {"term": "like", "mean_tfidf": 0.0754717795181684},
+      {"term": "fabric", "mean_tfidf": 0.0645152409415608},
+      {"term": "fit", "mean_tfidf": 0.06128838820899125},
+      {"term": "just", "mean_tfidf": 0.056331997268011594},
+      {"term": "size", "mean_tfidf": 0.05450406836981611},
+      {"term": "small", "mean_tfidf": 0.04944168712483415},
+      {"term": "love", "mean_tfidf": 0.048216246524799077},
+      {"term": "look", "mean_tfidf": 0.04638204967246899},
+      {"term": "material", "mean_tfidf": 0.045762906165833596},
+      {"term": "ordered", "mean_tfidf": 0.04540036867719312},
+      {"term": "really", "mean_tfidf": 0.045083666755469744},
+      {"term": "quality", "mean_tfidf": 0.044477165790979385},
+      {"term": "shirt", "mean_tfidf": 0.04420499458625064},
+      {"term": "wear", "mean_tfidf": 0.04410038517157295},
+      {"term": "cute", "mean_tfidf": 0.04301749312017908},
+      {"term": "looks", "mean_tfidf": 0.04258514590550899},
+      {"term": "way", "mean_tfidf": 0.041259202130741524},
+      {"term": "color", "mean_tfidf": 0.041109684051527914},
+      {"term": "looked", "mean_tfidf": 0.038809355690769105}
+    ]
+  },
+  "split": {
+    "random_state": 42,
+    "test_size": 0.2,
+    "train_rows": 18107,
+    "test_rows": 4527
+  },
+  "tfidf": {
+    "features": 10000,
+    "train_shape": [18107, 10000],
+    "test_shape": [4527, 10000]
+  },
+  "labels": ["Negative", "Neutral", "Positive"],
+  "models": {
+    "majority": {
+      "accuracy": 0.7704881820189972,
+      "macro_f1": 0.29012268662923685,
+      "weighted_f1": 0.6706083041502836,
+      "macro_precision": 0.25682939400633237,
+      "macro_recall": 0.3333333333333333,
+      "confusion_matrix": [[0,0,474],[0,0,565],[0,0,3488]],
+      "roc_auc_ovr_macro": null,
+      "pr_auc_ovr_macro": null
+    },
+    "naive_bayes": {
+      "accuracy": 0.8237243207422134,
+      "macro_f1": 0.5691539517708389,
+      "weighted_f1": 0.7948484353593384,
+      "macro_precision": 0.6621637774606698,
+      "macro_recall": 0.5303575334457641,
+      "confusion_matrix": [[183,100,191],[73,127,365],[16,53,3419]],
+      "roc_auc_ovr_macro": 0.9035839975827039,
+      "pr_auc_ovr_macro": 0.653853970738979
+    },
+    "logistic_regression": {
+      "accuracy": 0.7866136514247847,
+      "macro_f1": 0.6100288331453233,
+      "weighted_f1": 0.8040770382446991,
+      "macro_precision": 0.5933361337954556,
+      "macro_recall": 0.6392395314378593,
+      "confusion_matrix": [[269,174,31],[180,274,111],[100,370,3018]],
+      "roc_auc_ovr_macro": 0.8910748031451158,
+      "pr_auc_ovr_macro": 0.6386359673303205
+    },
+    "linear_svm": {
+      "accuracy": 0.8080406450187763,
+      "macro_f1": 0.6018714011063641,
+      "weighted_f1": 0.8080203715857502,
+      "macro_precision": 0.6024653283995819,
+      "macro_recall": 0.6012946363167461,
+      "confusion_matrix": [[245,159,70],[142,208,215],[81,202,3205]],
+      "roc_auc_ovr_macro": 0.8763036726954053,
+      "pr_auc_ovr_macro": 0.624353612160992
+    }
+  }
+}
