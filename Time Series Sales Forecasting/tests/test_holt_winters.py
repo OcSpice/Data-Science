@@ -402,3 +402,24 @@ class TestChronologicalPipelineBoundaries:
         assert len(table) == 5 * 4 * 4
         assert table["MAPE"].is_monotonic_increasing
         assert table.iloc[0]["MAPE"] <= table.iloc[-1]["MAPE"]
+
+
+    def test_forecast_preserves_seasonal_phase_after_non_multiple_training_length(self):
+        """Forecast step 1 must use the seasonal position after the final observation."""
+        seasonal_pattern = np.array([0, 10, 20, 30, 40, 30, 10], dtype=float)
+        y = 100 + np.tile(seasonal_pattern, 15)[:103]
+
+        model = HoltWintersModel(
+            season_length=7,
+            seasonal_type="add",
+            alpha=0.3,
+            beta=0.05,
+            gamma=0.3,
+        )
+        model.fit(y)
+        forecasts = model.predict(7)
+
+        # 103 observations leaves the next observation at seasonal index 5.
+        expected_indices = [(103 + h - 1) % 7 for h in range(1, 8)]
+        assert expected_indices == [5, 6, 0, 1, 2, 3, 4]
+        assert np.argmax(forecasts) == 4
