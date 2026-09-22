@@ -1,0 +1,30 @@
+name: NLP Sentiment Analysis Validation
+
+on:
+  push:
+    branches: [main, rebuild-nlp-sentiment]
+  pull_request:
+    branches: [main]
+
+jobs:
+  nlp-validation:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: NLP Sentiment Analysis
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run unit tests
+        run: pytest tests/test_pipeline.py -v
+
+      - name: Run full NLP pipeline
+        run: python src/main_pipeline.py
