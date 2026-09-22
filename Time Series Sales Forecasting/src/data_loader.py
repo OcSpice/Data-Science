@@ -288,7 +288,7 @@ class DataLoader:
                 # Try group-based filling first
                 if 'item_id' in data.columns and 'store_id' in data.columns:
                     data[col] = data.groupby(['item_id', 'store_id'])[col].transform(
-                        lambda x: x.fillna(method='ffill').fillna(method='bfill')
+                        lambda x: x.ffill().bfill()
                     )
                 # Global filling for remaining NaNs
                 data[col] = data[col].fillna(data[col].median())
