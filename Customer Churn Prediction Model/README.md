@@ -54,7 +54,7 @@ Numeric variables use median imputation. Logistic Regression additionally uses `
 
 1. **Majority-class baseline** — establishes the performance floor.
 2. **Logistic Regression** — interpretable linear baseline.
-3. **Random Forest** — nonlinear primary model with class-balanced training and ROC-AUC cross-validation tuning.
+3. **Random Forest** — nonlinear class-balanced model tuned with ROC-AUC cross-validation; it is used for downstream risk segmentation and SHAP explainability because its recall is slightly higher than Logistic Regression on the held-out test set.
 
 ### Evaluation
 
@@ -68,6 +68,20 @@ The project reports:
 - Confusion matrix
 
 Accuracy is not treated as the sole success criterion for a retention use case.
+
+### Verified held-out test results
+
+The GitHub Actions runtime generated the following results:
+
+| Model | Accuracy | Precision | Recall | F1 | ROC-AUC | PR-AUC |
+|---|---:|---:|---:|---:|---:|---:|
+| Majority baseline | 60.70% | 0.00% | 0.00% | 0.00% | 0.500 | 0.393 |
+| Logistic Regression | **72.33%** | **61.39%** | 79.72% | **69.37%** | **0.800** | **0.694** |
+| Random Forest | 71.46% | 60.23% | **80.59%** | 68.94% | 0.794 | 0.685 |
+
+The Logistic Regression model has the stronger ROC-AUC and F1 on this split, while Random Forest has slightly higher recall. The project therefore does not claim that Random Forest is universally superior; it is retained for the downstream risk/economic analysis and model-specific SHAP explanation.
+
+At the default **0.70 risk threshold**, the Random Forest identifies **1,520 customers (21.71%)** with **$130,890.08 in monthly revenue exposure**, equivalent to **$1.57M annualized exposure** if the monthly amount were sustained. This is a prioritization metric, not a forecast of realized revenue loss.
 
 ## Threshold analysis
 
