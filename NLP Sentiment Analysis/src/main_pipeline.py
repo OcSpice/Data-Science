@@ -15,7 +15,7 @@ from data.data_loader import DataLoader
 from preprocessing.text_preprocessor import TextPreprocessor
 from models.tfidf_vectorizer import CustomTFIDFVectorizer
 from models.sentiment_classifier import SentimentClassifier
-from insights.root_cause_analyzer import RootCauseAnalyzer
+from insights.theme_analyzer import ThemeAnalyzer
 from visualization.plot_generator import VisualizationGenerator
 from insights.report_generator import ReportGenerator
 
@@ -31,7 +31,7 @@ class SentimentAnalysisPipeline:
         self.data_loader = DataLoader(data_path)
         self.preprocessor = TextPreprocessor()
         self.vectorizer = CustomTFIDFVectorizer(max_features=3000, ngram_range=(1, 2))
-        self.analyzer = RootCauseAnalyzer()
+        self.analyzer = ThemeAnalyzer()
         self.visualization_gen = VisualizationGenerator(str(self.output_dir))
         self.report_generator = ReportGenerator(str(self.output_dir))
 
