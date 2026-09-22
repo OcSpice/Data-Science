@@ -71,7 +71,8 @@ class HoltWintersModel:
         seasonal_type: str = 'add',
         alpha: float = 0.2,
         beta: float = 0.1,
-        gamma: float = 0.1
+        gamma: float = 0.1,
+        damping: float = 1.0
     ):
         """
         Initialize the Holt-Winters model.
@@ -91,6 +92,9 @@ class HoltWintersModel:
         self.alpha = alpha
         self.beta = beta
         self.gamma = gamma
+        if not 0 < damping <= 1:
+            raise ValueError("damping must be in (0, 1]")
+        self.damping = damping
         
         # Model state (will be set during fitting)
         self.level: Optional[float] = None
@@ -319,10 +323,12 @@ class HoltWintersModel:
             
             if self.seasonal_type == 'add':
                 # Additive: F(t+h) = L(t) + h*T(t) + S(t-s+h)
-                forecasts[h-1] = self.level + h * self.trend + self.seasonal[s_idx]
+                trend_effect = self.trend * (h if self.damping == 1.0 else self.damping * (1 - self.damping ** h) / (1 - self.damping))
+                forecasts[h-1] = self.level + trend_effect + self.seasonal[s_idx]
             else:
                 # Multiplicative: F(t+h) = (L(t) + h*T(t)) * S(t-s+h)
-                forecasts[h-1] = (self.level + h * self.trend) * self.seasonal[s_idx]
+                trend_effect = self.trend * (h if self.damping == 1.0 else self.damping * (1 - self.damping ** h) / (1 - self.damping))
+                forecasts[h-1] = (self.level + trend_effect) * self.seasonal[s_idx]
         
         return forecasts
     
