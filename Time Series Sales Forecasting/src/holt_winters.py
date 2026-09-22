@@ -407,28 +407,28 @@ class HoltWintersModel:
         for alpha in param_grid.get('alpha', [0.2]):
             for beta in param_grid.get('beta', [0.1]):
                 for gamma in param_grid.get('gamma', [0.1]):
-                for damping in param_grid.get('damping', [1.0]):
-                    try:
+                    for damping in param_grid.get('damping', [1.0]):
+                        try:
                         # Create temporary model with these parameters
-                        temp_model = HoltWintersModel(
-                            season_length=self.season_length,
-                            seasonal_type=self.seasonal_type,
-                            alpha=alpha,
-                            beta=beta,
-                            gamma=gamma,
-                            damping=damping
-                        )
-                        temp_model.fit(y)
+                            temp_model = HoltWintersModel(
+                                season_length=self.season_length,
+                                seasonal_type=self.seasonal_type,
+                                alpha=alpha,
+                                beta=beta,
+                                gamma=gamma,
+                                damping=damping
+                            )
+                            temp_model.fit(y)
                         
-                        # Calculate sum of squared errors
-                        sse = np.sum(temp_model.residuals ** 2)
+                            # Calculate sum of squared errors
+                            sse = np.sum(temp_model.residuals ** 2)
+                            
+                            if sse < best_sse:
+                                best_sse = sse
+                                best_params = {'alpha': alpha, 'beta': beta, 'gamma': gamma, 'damping': damping}
                         
-                        if sse < best_sse:
-                            best_sse = sse
-                            best_params = {'alpha': alpha, 'beta': beta, 'gamma': gamma, 'damping': damping}
-                    
-                    except Exception:
-                        continue
+                        except Exception:
+                            continue
         
         if best_params:
             self.alpha = best_params['alpha']
