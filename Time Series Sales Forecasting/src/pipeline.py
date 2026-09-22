@@ -107,16 +107,16 @@ def select_parameters(
             for gamma in PARAM_GRID["gamma"]:
                 for damping in PARAM_GRID["damping"]:
                     model = HoltWintersModel(
-                    season_length=season_length,
-                    seasonal_type=seasonal_type,
-                    alpha=alpha,
-                    beta=beta,
-                    gamma=gamma,
-                    damping=damping,
-                )
-                model.fit(train_sales)
-                forecast = np.maximum(model.predict(len(validation_sales)), 0)
-                rows.append(
+                        season_length=season_length,
+                        seasonal_type=seasonal_type,
+                        alpha=alpha,
+                        beta=beta,
+                        gamma=gamma,
+                        damping=damping,
+                    )
+                    model.fit(train_sales)
+                    forecast = np.maximum(model.predict(len(validation_sales)), 0)
+                    rows.append(
                     {
                         "alpha": alpha,
                         "beta": beta,
@@ -126,7 +126,7 @@ def select_parameters(
                         "MAE": float(EvaluationMetrics.mae(validation_sales, forecast)),
                         "RMSE": float(EvaluationMetrics.rmse(validation_sales, forecast)),
                     }
-                )
+                    )
 
     results = pd.DataFrame(rows).sort_values(
         ["MAPE", "MAE", "RMSE"], ascending=True
