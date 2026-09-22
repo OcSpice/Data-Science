@@ -106,7 +106,7 @@ def select_parameters(
         for beta in PARAM_GRID["beta"]:
             for gamma in PARAM_GRID["gamma"]:
                 for damping in PARAM_GRID["damping"]:
-                model = HoltWintersModel(
+                    model = HoltWintersModel(
                     season_length=season_length,
                     seasonal_type=seasonal_type,
                     alpha=alpha,
@@ -121,6 +121,7 @@ def select_parameters(
                         "alpha": alpha,
                         "beta": beta,
                         "gamma": gamma,
+                        "damping": damping,
                         "MAPE": float(EvaluationMetrics.mape(validation_sales, forecast)),
                         "MAE": float(EvaluationMetrics.mae(validation_sales, forecast)),
                         "RMSE": float(EvaluationMetrics.rmse(validation_sales, forecast)),
