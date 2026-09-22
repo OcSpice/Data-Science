@@ -77,7 +77,7 @@ class CustomTFIDFVectorizer:
         if not self.is_fitted:
             raise ValueError("Vectorizer must be fitted before transform. Call fit() first.")
         
-        return self.vectorizer.transform(texts).toarray()
+        return self.vectorizer.transform(texts)
     
     def fit_transform(self, texts: List[str]) -> np.ndarray:
         """
@@ -90,7 +90,7 @@ class CustomTFIDFVectorizer:
             TF-IDF feature matrix
         """
         self.is_fitted = True
-        return self.vectorizer.fit_transform(texts).toarray()
+        return self.vectorizer.fit_transform(texts)
     
     def get_feature_names(self) -> List[str]:
         """
