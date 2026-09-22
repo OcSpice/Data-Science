@@ -1,87 +1,69 @@
-"""
-NLP Sentiment Analysis and Customer Feedback Insight Engine
-Author: OGHENEOCHUKO EMMANUEL OGIDIAGBA
+"""Dataset loading, schema validation and descriptive quality checks."""
 
-This module handles data loading, schema validation, and text quality checks.
-"""
-
-import pandas as pd
-import re
-from typing import Optional, Tuple, List
 from pathlib import Path
+from typing import Optional
+import pandas as pd
 
 
 class DataLoader:
-    """
-    Handles loading and validation of customer review datasets.
-    
-    Attributes:
-        file_path: Path to the CSV file
-        expected_columns: List of required column names
-    """
-    
-    EXPECTED_COLUMNS = [
-        'ReviewID', 'Product', 'Category', 'Source', 'Country',
-        'Rating', 'Sentiment', 'Review', 'WordCount', 'CharCount', 'Topic'
-    ]
-    
-    VALID_SENTIMENTS = {'Positive', 'Negative', 'Neutral'}
-    
+    EXPECTED_COLUMNS = ["ReviewID", "Product", "Category", "Source", "Country", "Rating", "Sentiment", "Review", "WordCount", "CharCount", "Topic"]
+    VALID_SENTIMENTS = {"Positive", "Negative", "Neutral"}
+
     def __init__(self, file_path: str):
         self.file_path = Path(file_path)
         self.data: Optional[pd.DataFrame] = None
-        
+
     def load(self) -> pd.DataFrame:
-        """
-        Load the CSV file into a pandas DataFrame.
-        
-        Returns:
-            pd.DataFrame: Loaded dataset
-            
-        Raises:
-            FileNotFoundError: If the file does not exist
-            ValueError: If schema validation fails
-        """
         if not self.file_path.exists():
             raise FileNotFoundError(f"Dataset not found at {self.file_path}")
-        
         self.data = pd.read_csv(self.file_path)
         self._validate_schema()
         return self.data
-    
+
     def _validate_schema(self) -> None:
-        """
-        Validate that the loaded data has expected columns and types.
-        
-        Raises:
-            ValueError: If schema validation fails
-        """
         if self.data is None:
             raise ValueError("No data loaded. Call load() first.")
-        
-        missing_cols = set(self.EXPECTED_COLUMNS) - set(self.data.columns)
-        if missing_cols:
-            raise ValueError(f"Missing required columns: {missing_cols}")
-        
-        invalid_sentiments = set(self.data['Sentiment'].unique()) - self.VALID_SENTIMENTS
-        if invalid_sentiments:
-            raise ValueError(f"Invalid sentiment values found: {invalid_sentiments}")
-        
-        print(f"Schema validation passed. {len(self.data)} records loaded.")
-    
+        missing = set(self.EXPECTED_COLUMNS) - set(self.data.columns)
+        if missing:
+            raise ValueError(f"Missing required columns: {missing}")
+        invalid = set(self.data["Sentiment"].dropna().unique()) - self.VALID_SENTIMENTS
+        if invalid:
+            raise ValueError(f"Invalid sentiment values found: {invalid}")
+        if self.data["Review"].isna().any():
+            self.data["Review"] = self.data["Review"].fillna("")
+        if self.data["Sentiment"].isna().any():
+            raise ValueError("Sentiment contains missing values.")
+
     def get_summary(self) -> dict:
-        """
-        Generate summary statistics for the loaded dataset.
-        
-        Returns:
-            dict: Summary statistics including record count, sentiment distribution
-        """
         if self.data is None:
             raise ValueError("No data loaded. Call load() first.")
-        
         return {
-            'total_records': len(self.data),
-            'sentiment_distribution': self.data['Sentiment'].value_counts().to_dict(),
-            'average_rating': float(self.data['Rating'].mean()),
-            'categories': self.data['Category'].unique().tolist()
+            "total_records": int(len(self.data)),
+            "sentiment_distribution": {str(k): int(v) for k,v in self.data["Sentiment"].value_counts().to_dict().items()},
+            "average_rating": float(self.data["Rating"].mean()),
+            "categories": self.data["Category"].dropna().unique().tolist(),
         }
+
+    def get_duplicate_summary(self, text_column: str = "Review", label_column: str = "Sentiment") -> dict:
+        if self.data is None:
+            raise ValueError("No data loaded. Call load() first.")
+        texts = self.data[text_column].fillna("").astype(str).str.strip()
+        duplicate_mask = texts.duplicated(keep=False)
+        duplicate_rows = int(duplicate_mask.sum())
+        unique_duplicate_texts = int(texts[duplicate_mask].nunique())
+        conflicting = 0
+        for _, group in self.data.loc[duplicate_mask].groupby(text_column, dropna=False):
+            if group[label_column].nunique() > 1:
+                conflicting += 1
+        return {
+            "exact_duplicate_rows": duplicate_rows,
+            "unique_duplicate_texts": unique_duplicate_texts,
+            "duplicate_row_pct": round(duplicate_rows/len(self.data)*100, 2),
+            "duplicate_texts_with_conflicting_labels": int(conflicting),
+        }
+
+    def get_category_sentiment_summary(self) -> list:
+        if self.data is None:
+            raise ValueError("No data loaded. Call load() first.")
+        table = pd.crosstab(self.data["Category"], self.data["Sentiment"], normalize="index").mul(100).round(2).reset_index()
+        return table.to_dict(orient="records")
