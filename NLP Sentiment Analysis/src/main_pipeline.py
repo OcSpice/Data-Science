@@ -13,6 +13,7 @@ from data.data_loader import DataLoader
 from preprocessing.text_preprocessor import TextPreprocessor
 from models.tfidf_vectorizer import CustomTFIDFVectorizer
 from models.sentiment_classifier import SentimentClassifier, LABELS
+from analysis.theme_analyzer import FeedbackThemeAnalyzer
 
 
 class SentimentAnalysisPipeline:
@@ -81,8 +82,12 @@ class SentimentAnalysisPipeline:
                 f"macro_f1={metrics['macro_f1']:.4f}"
             )
 
+        theme_analyzer = FeedbackThemeAnalyzer()
+        theme_analysis = theme_analyzer.analyze(processed, labels, top_n=20)
+
         output = {
             "dataset_audit": audit,
+            "theme_analysis": theme_analysis,
             "split": {
                 "random_state": self.RANDOM_STATE,
                 "test_size": 0.20,
