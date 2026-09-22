@@ -1,4 +1,4 @@
-name: NLP sentiment analysis tests
+name: NLP Sentiment Analysis Validation
 
 on:
   push:
@@ -12,7 +12,7 @@ on:
       - ".github/workflows/nlp-sentiment.yml"
 
 jobs:
-  unit-tests:
+  validate-nlp:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -32,3 +32,13 @@ jobs:
       - name: Run NLP unit tests
         working-directory: "NLP Sentiment Analysis"
         run: python -m pytest -q tests/test_pipeline.py
+
+      - name: Run full NLP pipeline
+        working-directory: "NLP Sentiment Analysis"
+        run: python src/main_pipeline.py
+
+      - name: Upload NLP validation report
+        uses: actions/upload-artifact@v4
+        with:
+          name: nlp-sentiment-validation-output
+          path: "NLP Sentiment Analysis/reports/model_evaluation.json"
