@@ -409,7 +409,7 @@ class HoltWintersModel:
                 for gamma in param_grid.get('gamma', [0.1]):
                     for damping in param_grid.get('damping', [1.0]):
                         try:
-                        # Create temporary model with these parameters
+                            # Create temporary model with these parameters
                             temp_model = HoltWintersModel(
                                 season_length=self.season_length,
                                 seasonal_type=self.seasonal_type,
