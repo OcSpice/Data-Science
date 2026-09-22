@@ -6,6 +6,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV, StratifiedKFold
 from sklearn.metrics import accuracy_score,precision_score,recall_score,f1_score,roc_auc_score,average_precision_score,confusion_matrix
+import pandas as pd
 
 class ChurnClassifier:
     def __init__(self,preprocessor=None,random_state=42):
@@ -19,12 +20,17 @@ class ChurnClassifier:
         self.feature_importances={}
         self._is_trained=False
 
+    def _transformed_frame(self, X, model_type):
+        names=self.preprocessor.get_feature_names(model_type)
+        transformed=self.preprocessor.transform(X,model_type)
+        return pd.DataFrame(transformed,index=X.index,columns=names)
+
     def fit(self,X_train,y_train,use_smote=False,tune_params=True):
         if self.preprocessor is None:
             raise ValueError("A DataPreprocessor is required.")
         self.preprocessor.fit_transformers(X_train)
-        Xlog=self.preprocessor.transform(X_train,"logistic")
-        Xtree=self.preprocessor.transform(X_train,"tree")
+        Xlog=self._transformed_frame(X_train,"logistic")
+        Xtree=self._transformed_frame(X_train,"tree")
         dummy=DummyClassifier(strategy="most_frequent")
         logistic=LogisticRegression(max_iter=2000,class_weight="balanced",random_state=self.random_state)
         rf=RandomForestClassifier(n_estimators=300,class_weight="balanced_subsample",random_state=self.random_state,n_jobs=-1)
@@ -51,7 +57,8 @@ class ChurnClassifier:
         return self
 
     def _predict_proba(self,name,X):
-        Xt=self.preprocessor.transform(X,"logistic" if name=="logistic_regression" else "tree")
+        model_type="logistic" if name=="logistic_regression" else "tree"
+        Xt=self._transformed_frame(X,model_type)
         return self.models[name].predict_proba(Xt)[:,1]
 
     def evaluate(self,X_test,y_test):
